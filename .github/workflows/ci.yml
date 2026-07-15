@@ -26,8 +26,8 @@ jobs:
 
       - name: Install LuaRocks
         run: |
-          curl -fsSL https://luarocks.org/releases/luarocks-3.11.1.tar.gz | tar xz
-          cd luarocks-3.11.1
+          curl -fsSL https://luarocks.org/releases/luarocks-3.13.0.tar.gz | tar xz
+          cd luarocks-3.13.0
           ./configure --with-lua=/usr/local --lua-version=5.5
           make
           sudo make install
