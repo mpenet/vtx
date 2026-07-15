@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Lua 5.5
+        run: |
+          curl -fsSL https://www.lua.org/ftp/lua-5.5.0.tar.gz | tar xz
+          cd lua-5.5.0
+          make linux
+          sudo make install
+          lua -v
+
+      - name: Install LuaRocks
+        run: |
+          curl -fsSL https://luarocks.org/releases/luarocks-3.11.1.tar.gz | tar xz
+          cd luarocks-3.11.1
+          ./configure --with-lua-bin=/usr/local/bin
+          make
+          sudo make install
+
+      - name: Install Fennel
+        run: sudo luarocks install fennel 1.6.1 --no-progress
+
+      - name: Run tests
+        run: make test
