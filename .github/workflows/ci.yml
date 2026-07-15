@@ -33,7 +33,7 @@ jobs:
           sudo make install
 
       - name: Install Fennel
-        run: sudo luarocks install fennel 1.6.1 --no-progress
+        run: sudo luarocks install fennel 1.6.1
 
       - name: Run tests
         run: make test
