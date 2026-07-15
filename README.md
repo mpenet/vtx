@@ -50,6 +50,224 @@ Colors default to the active theme; pass explicit values to override.
 
 ---
 
+## Style & Layout
+
+![style demo](docs/gif/01-style.gif)
+
+### `tiki.style text opts`
+
+Non-interactive. Renders styled/boxed text and returns the result string.
+
+```fennel
+(print (tiki.style "Hello!" {:border  "rounded"
+                             :padding 1
+                             :fg      tiki.ansi.fg.green
+                             :bold    true}))
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `:border` | string | `"rounded"` `"normal"` `"double"` `"thick"` `"ascii"` `"none"` |
+| `:padding` | number or table | Inner padding — number for all sides, or `{:top :bottom :left :right}` |
+| `:margin` | number or table | Outer margin — same format as padding |
+| `:width` | number | Minimum inner width (content padded to fill) |
+| `:align` | string | `"left"` (default) `"center"` `"right"` |
+| `:fg` | ANSI code | Text foreground color |
+| `:bg` | ANSI code | Text background color |
+| `:bold` | bool | Bold text |
+| `:italic` | bool | Italic text |
+| `:underline` | bool | Underlined text |
+| `:wrap` | bool | Word-wrap text to `:width` before boxing |
+
+Available border character sets (`tiki.borders`):
+
+```
+rounded  ╭─╮  double  ╔═╗  thick  ┏━┓  normal  ┌─┐  ascii  +-+
+         │ │          ║ ║         ┃ ┃           │ │          | |
+         ╰─╯          ╚═╝         ┗━┛           └─┘          +-+
+```
+
+---
+
+### `tiki.separator opts`
+
+Returns a horizontal rule string — a full-width line, optionally with a centered label.
+
+```fennel
+(print (tiki.separator {:width 60}))
+(print (tiki.separator {:label " Section " :width 60 :border "double" :fg tiki.ansi.fg.cyan}))
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:width` | `40` | Total width of the separator line |
+| `:label` | `""` | Optional centered label text |
+| `:border` | `"normal"` | Border character set to use for `─` glyph |
+| `:fg` | — | Line color |
+| `:margin-left` | `0` | Left margin spaces |
+
+---
+
+### `tiki.hbox items opts`
+
+Arrange rendered strings side by side. Each item is a (possibly multi-line) string. Returns the composed string.
+
+```fennel
+(print (tiki.hbox
+  [(tiki.style "Left\npanel\nthree lines" {:border "rounded" :padding 1})
+   (tiki.style "Center\npanel"            {:border "rounded" :padding 1})
+   (tiki.style "Right"                    {:border "rounded" :padding 1})]
+  {:gap 1 :valign "bottom"}))
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:gap` | `0` | Spaces between columns |
+| `:valign` | `"top"` | Vertical alignment: `"top"` `"center"` `"bottom"` |
+
+---
+
+### `tiki.vbox items opts`
+
+Stack rendered strings vertically. Returns the composed string.
+
+```fennel
+(print (tiki.vbox
+  [(tiki.style "Top panel"    {:border "rounded" :width 40})
+   (tiki.style "Bottom panel" {:border "rounded" :width 40})]
+  {:gap 1}))
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:gap` | `0` | Blank lines between rows |
+
+---
+
+### `tiki.place content opts`
+
+Position content within a fixed-size area (pad or crop to fit). Returns the composed string.
+
+```fennel
+(print (tiki.place my-widget {:width 40 :height 10 :halign "center" :valign "middle"}))
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:width` | content width | Canvas width in columns |
+| `:height` | content height | Canvas height in lines |
+| `:halign` | `"left"` | Horizontal alignment: `"left"` `"center"` `"right"` |
+| `:valign` | `"top"` | Vertical alignment: `"top"` `"middle"` `"bottom"` |
+
+---
+
+### `tiki.key-help bindings opts`
+
+Renders a compact key binding hint string. Non-interactive.
+
+```fennel
+(print (tiki.key-help [{:key "↑↓" :desc "navigate"}
+                       {:key "space" :desc "select"}
+                       {:key "enter" :desc "confirm"}
+                       {:key "q" :desc "quit"}]))
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:sep` | `"  "` | Separator between binding pairs |
+| `:key-fg` | bold | Key name style |
+| `:desc-fg` | dim | Description style |
+
+---
+
+### `tiki.width-of text` / `tiki.height-of text`
+
+Measure rendered strings (ANSI-escape-aware).
+
+```fennel
+(tiki.width-of (tiki.style "Hello" {:border "rounded"}))  ; → number of columns
+(tiki.height-of (tiki.style "Hello" {:border "rounded" :padding 1}))  ; → number of lines
+```
+
+---
+
+### `tiki.merge-style base extra`
+
+Shallow-merge two option tables. `extra` keys override `base` keys.
+
+```fennel
+(local themed (tiki.merge-style defaults overrides))
+```
+
+---
+
+## Data Display
+
+![data demo](docs/gif/02-data.gif)
+
+### `tiki.gauge value ?total opts`
+
+Returns a styled progress bar string. Non-interactive.
+
+```fennel
+;; Value as ratio 0–1
+(print (tiki.gauge 0.75))
+
+;; Value as count out of total
+(print (tiki.gauge 45 100 {:label "RAM" :width 20 :bar-fg tiki.ansi.fg.cyan}))
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:width` | `20` | Bar width in characters |
+| `:label` | `""` | Label prefix shown before the bar |
+| `:show-pct` | `true` | Append percentage string |
+| `:fill` | `"█"` | Filled block character |
+| `:empty` | `"░"` | Empty block character |
+| `:bar-fg` | green | Bar fill color |
+
+---
+
+### `tiki.sparkline data opts`
+
+Returns a Unicode bar-chart string for a sequence of numbers. Non-interactive.
+
+```fennel
+(print (tiki.sparkline [2 5 1 8 3 9 4 7] {:label "CPU:" :fg tiki.ansi.fg.cyan}))
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:label` | `""` | Label prefix |
+| `:fg` | cyan | Bar color |
+
+Uses `▁▂▃▄▅▆▇█` scaled to data min/max.
+
+---
+
+### Gradient utilities
+
+Apply smooth RGB color gradients to text. Non-interactive — all return styled strings.
+
+```fennel
+;; Gradient applied per character (horizontal)
+(print (tiki.gradient-text "Rainbow text" ["#ff0000" "#ffff00" "#00ff00" "#0088ff"]))
+
+;; Gradient applied per line (vertical foreground)
+(print (tiki.gradient-lines "line 1\nline 2\nline 3" ["#8b5cf6" "#ec4899"]))
+
+;; Gradient applied per line (vertical background)
+(print (tiki.gradient-bg-lines "line 1\nline 2\nline 3" ["#1e3a5f" "#0d1117"]))
+```
+
+All accept a list of 3- or 6-digit hex color stops. Colors are linearly interpolated across stops.
+
+---
+
+## Text Input
+
+![input demo](docs/gif/03-input.gif)
+
 ### `tiki.input opts`
 
 Single-line text editor. Returns the entered string or `nil`.
@@ -71,7 +289,7 @@ Single-line text editor. Returns the entered string or `nil`.
 | `:prompt-fg` | cyan | Prompt color |
 | `:cursor-fg` | green | Cursor highlight color |
 | `:history` | `[]` | List of previous inputs; navigate with ctrl-p/ctrl-n |
-| `:complete` | `nil` | `(fn [buf] [...])` — called on tab; single result replaces buffer, multiple results complete to longest common prefix |
+| `:complete` | `nil` | `(fn [buf] [...])` — called on tab; single result replaces buffer |
 | `:on-change` | `nil` | `(fn [buf] ...)` — called after every buffer change |
 
 **Keys**
@@ -98,7 +316,7 @@ Single-line text editor. Returns the entered string or `nil`.
 
 ### `tiki.num-input opts`
 
-Numeric input with arrow-key stepping and optional bounds. Returns a number or `nil` on abort.
+Numeric input with arrow-key stepping and optional bounds. Returns a number or `nil`.
 
 ```fennel
 (tiki.num-input {:prompt "Age: " :min 0 :max 120 :step 1 :value 25})
@@ -110,31 +328,15 @@ Numeric input with arrow-key stepping and optional bounds. Returns a number or `
 | Option | Default | Description |
 |--------|---------|-------------|
 | `:value` | `0` | Initial value |
-| `:min` | `nil` | Minimum allowed value (no limit if unset) |
-| `:max` | `nil` | Maximum allowed value (no limit if unset) |
-| `:step` | `1` | Arrow-key increment/decrement amount |
+| `:min` | `nil` | Minimum (no limit if unset) |
+| `:max` | `nil` | Maximum (no limit if unset) |
+| `:step` | `1` | Arrow-key increment |
 | `:decimals` | `0` | Decimal places; `0` = integer mode |
 | `:prompt` | `"> "` | Prompt prefix |
 | `:prompt-fg` | cyan | Prompt color |
 | `:value-fg` | green | Valid value color (red when out of range) |
 
-**Keys**
-
-| Key | Action |
-|-----|--------|
-| ↑/k | Increment by `:step` |
-| ↓/j | Decrement by `:step` |
-| page-up | Increment by `10 × :step` |
-| page-down | Decrement by `10 × :step` |
-| home | Jump to `:min` (if set) |
-| end | Jump to `:max` (if set) |
-| 0–9 / `-` / `.` | Type value directly |
-| backspace | Delete last character |
-| ctrl-u | Clear buffer |
-| enter | Confirm (only when value is valid) |
-| ctrl-c | Abort |
-
-Value is shown in red while it falls outside `[:min :max]`; enter is ignored until valid.
+**Keys:** ↑/k/page-up increment; ↓/j/page-down decrement; home/end jump to min/max; 0–9/-/. type directly; enter confirm; ctrl-c abort.
 
 ---
 
@@ -146,172 +348,23 @@ Masked password input. Returns the string or `nil`.
 (tiki.password {:prompt "Password: " :mask "•"})
 
 ;; Confirm mode: prompts twice, returns nil if they don't match
-(tiki.password {:confirm        true
-                :confirm-prompt "Confirm: "})
+(tiki.password {:confirm true :confirm-prompt "Confirm: "})
 ```
 
 | Option | Default | Description |
 |--------|---------|-------------|
 | `:prompt` | `"> "` | Prompt prefix |
-| `:mask` | `"•"` | Character shown in place of each typed character |
-| `:confirm` | `false` | When `true`, prompt twice and verify match |
-| `:confirm-prompt` | `"Confirm: "` | Second prompt text (confirm mode) |
+| `:mask` | `"•"` | Replacement character |
+| `:confirm` | `false` | Prompt twice and verify match |
+| `:confirm-prompt` | `"Confirm: "` | Second prompt (confirm mode) |
 | `:prompt-fg` | cyan | Prompt color |
-| `:cursor-fg` | green | Cursor highlight color |
-
-**Keys:** same as `input` except no paste, undo, word navigation, completion, or history.
-
----
-
-### `tiki.confirm prompt opts`
-
-Yes/No prompt. Returns `true`, `false`, or `nil` on abort.
-
-```fennel
-(tiki.confirm "Delete file?")
-(tiki.confirm "Overwrite?" {:default false :affirmative "Yep" :negative "Nope"})
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:default` | `true` | Which option starts selected |
-| `:affirmative` | `"Yes"` | Label for the truthy choice |
-| `:negative` | `"No"` | Label for the falsy choice |
-| `:prompt-fg` | cyan | Prompt color |
-| `:selected-fg` | green | Selected option color |
-| `:selected-attr` | bold | Extra attribute on selected option |
-| `:unselected-fg` | white | Unselected option color |
-
-**Keys**
-
-| Key | Action |
-|-----|--------|
-| ←/→ h/l ctrl-b/f | Toggle |
-| y | Select yes and confirm |
-| n | Select no and confirm |
-| enter | Confirm current selection |
-| ctrl-c | Abort |
-
----
-
-### `tiki.choose items opts`
-
-Pick one item from a list (or multiple in multi mode). Returns the selected item, or a list of items in multi mode, or `nil`.
-
-```fennel
-(tiki.choose ["Fennel" "Clojure" "Lua"])
-(tiki.choose items {:height 8 :multi true})
-(tiki.choose items {:search true})   ; enable / search
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:height` | `10` | Max visible rows |
-| `:multi` | `false` | Enable multi-select |
-| `:search` | `false` | Enable `/` incremental search with `n`/`N` cycling |
-| `:alt-screen` | `false` | Use alternate screen buffer |
-| `:cursor` | `"> "` | Cursor string |
-| `:cursor-fg` | cyan | Cursor color |
-| `:selected-fg` | green | Highlighted item color |
-| `:selected-attr` | bold | Extra attribute on highlighted item |
-| `:unselected-fg` | white | Normal item color |
-
-**Returns:** in single mode, the item directly; in multi mode, a list. If nothing is selected in multi mode and enter is pressed, returns `[cursor-item]`.
-
-**Keys**
-
-| Key | Action |
-|-----|--------|
-| ↑/↓ k/j | Move cursor |
-| g/G | First/last item |
-| ctrl-f/ctrl-b | Half-page down/up |
-| space | Toggle selection (multi) |
-| / | Enter search mode (`:search true`) |
-| n/N | Next/prev search match (`:search true`) |
-| enter | Confirm |
-| q/ctrl-c | Abort |
-
----
-
-### `tiki.checklist items opts`
-
-Static list with toggle checkboxes. Returns a list of checked item strings, or `nil` on abort.
-
-```fennel
-(tiki.checklist ["Option A" "Option B" "Option C"])
-
-;; Pre-check items by index (1-based)
-(tiki.checklist items {:checked [1 3] :height 8})
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:height` | `10` | Max visible rows |
-| `:checked` | `[]` | List of 1-based indices to pre-check |
-| `:cursor` | `"> "` | Cursor string |
-| `:cursor-fg` | cyan | Cursor color |
-| `:selected-fg` | green | Checked item color |
-| `:unselected-fg` | white | Unchecked item color |
-
-**Keys**
-
-| Key | Action |
-|-----|--------|
-| ↑/↓ k/j | Move cursor |
-| g/G | First/last item |
-| space | Toggle current item |
-| a | Toggle all (check all if none checked, else uncheck all) |
-| enter | Confirm |
-| q/ctrl-c | Abort |
-
----
-
-### `tiki.filter items opts`
-
-Incremental fuzzy or substring search over a list. Returns `[item, ...]` or `nil`.
-
-```fennel
-(tiki.filter files {:fuzzy true :height 10})
-(tiki.filter items {:multi true :prompt "search: "})
-
-;; Custom item renderer (receives item string + match position list)
-(tiki.filter items {:render (fn [item positions]
-                              (.. "[" item "]"))})
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:height` | `10` | Max visible rows |
-| `:fuzzy` | `true` | Fuzzy match (false = substring) |
-| `:multi` | `false` | Enable multi-select |
-| `:alt-screen` | `false` | Use alternate screen buffer |
-| `:prompt` | `"> "` | Search prompt |
-| `:prompt-fg` | cyan | Prompt color |
-| `:cursor` | `"> "` | Cursor string |
-| `:cursor-fg` | cyan | Cursor color |
-| `:match-fg` | yellow | Matched character highlight color |
-| `:selected-fg` | green | Highlighted item color |
-| `:selected-attr` | bold | Extra attribute on highlighted item |
-| `:unselected-fg` | white | Normal item color |
-| `:render` | `nil` | `(fn [item positions] string)` — custom item renderer; `positions` is a list of matched byte indices |
-
-**Keys**
-
-| Key | Action |
-|-----|--------|
-| type | Filter items |
-| ↑/↓ | Move cursor |
-| tab | Toggle selection (multi) |
-| enter | Confirm |
-| backspace | Delete query char |
-| ctrl-u | Clear query |
-| ctrl-c/escape | Abort |
+| `:cursor-fg` | green | Cursor color |
 
 ---
 
 ### `tiki.write opts`
 
-Multi-line text editor. Returns the text string or `nil` on abort.
+Multi-line text editor. Returns the text string or `nil`.
 
 ```fennel
 (tiki.write {:header    "Notes:"
@@ -323,64 +376,430 @@ Multi-line text editor. Returns the text string or `nil` on abort.
 | Option | Default | Description |
 |--------|---------|-------------|
 | `:height` | `6` | Visible line count |
-| `:prompt` | `"  "` | Per-line left margin string |
+| `:prompt` | `"  "` | Per-line left margin |
 | `:header` | `nil` | Label printed above the editor |
 | `:value` | `""` | Initial content |
 | `:prompt-fg` | cyan | Prompt color |
 | `:cursor-fg` | green | Cursor color |
-| `:on-change` | `nil` | `(fn [content] ...)` — called after every content change with the full `"\n"`-joined string |
+| `:on-change` | `nil` | `(fn [content] ...)` called after every change |
 
-**Keys:** all `input` keys, plus:
+**Keys:** all `input` keys, plus ↑/↓ between lines, enter inserts newline, ctrl-d submits.
 
-| Key | Action |
-|-----|--------|
-| ↑/↓ ctrl-p/n | Move between lines |
-| enter | Insert newline |
-| ctrl-d | Submit |
-| ctrl-k | Kill to end of line |
+---
+
+### `tiki.slider opts`
+
+Horizontal value slider. Returns a number or `nil`.
+
+```fennel
+(tiki.slider {:prompt "Volume: " :min 0 :max 100 :step 5 :value 50})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:value` | `:min` | Initial value |
+| `:min` | `0` | Left-most value |
+| `:max` | `100` | Right-most value |
+| `:step` | `1` | Arrow-key increment |
+| `:width` | `30` | Track width in characters |
+| `:prompt` | `""` | Prompt prefix |
+| `:filled-char` | `"━"` | Left-of-thumb track character |
+| `:empty-char` | `"─"` | Right-of-thumb track character |
+| `:thumb-char` | `"●"` | Thumb character |
+| `:thumb-fg` | cyan | Thumb color |
+| `:format-fn` | `nil` | `(fn [v] string)` — custom value label |
+
+**Keys:** ←/h decrease; →/l increase; g jump to min; G jump to max; enter confirm; q/ctrl-c abort.
+
+---
+
+### `tiki.autocomplete items opts`
+
+Inline completion dropdown — query narrows results as you type. Returns the selected string or `nil`.
+
+```fennel
+(tiki.autocomplete ["apple" "apricot" "banana"] {:height 5 :fuzzy false})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | `5` | Max dropdown rows |
+| `:fuzzy` | `false` | Fuzzy match (false = substring) |
+| `:prompt` | `"> "` | Input prompt |
+| `:prompt-fg` | cyan | Prompt color |
+| `:cursor-fg` | cyan | Highlighted item color |
+
+---
+
+## Selection
+
+![selection demo](docs/gif/04-selection.gif)
+
+### `tiki.choose items opts`
+
+Pick one item from a list (or multiple in multi mode). Returns the selected item or a list in multi mode.
+
+```fennel
+(tiki.choose ["Fennel" "Clojure" "Lua"])
+(tiki.choose items {:height 8 :multi true})
+(tiki.choose items {:search true})   ; enable / search
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | `10` | Max visible rows |
+| `:multi` | `false` | Enable multi-select (space to toggle) |
+| `:search` | `false` | Enable `/` incremental search |
+| `:alt-screen` | `false` | Use alternate screen buffer |
+| `:cursor` | `"> "` | Cursor string |
+| `:cursor-fg` | cyan | Cursor color |
+| `:selected-fg` | green | Highlighted item color |
+| `:selected-attr` | bold | Extra attribute on highlighted item |
+| `:unselected-fg` | white | Normal item color |
+
+**Keys:** ↑/↓ k/j move; g/G first/last; space toggle (multi); / search; n/N next/prev match; enter confirm; q/ctrl-c abort.
+
+---
+
+### `tiki.checklist items opts`
+
+List with toggle checkboxes. Returns a list of checked item strings, or `nil`.
+
+```fennel
+(tiki.checklist ["Option A" "Option B" "Option C"])
+(tiki.checklist items {:checked [1 3] :height 8})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | `10` | Max visible rows |
+| `:checked` | `[]` | 1-based indices to pre-check |
+| `:cursor` | `"> "` | Cursor string |
+| `:cursor-fg` | cyan | Cursor color |
+| `:selected-fg` | green | Checked item color |
+| `:unselected-fg` | white | Unchecked item color |
+
+**Keys:** ↑/↓ k/j move; g/G first/last; space toggle; a toggle all; enter confirm; q/ctrl-c abort.
+
+---
+
+### `tiki.radio items opts`
+
+Single-select radio list — cursor and selected state are decoupled so you can navigate without losing selection. Returns the selected item or `nil`.
+
+```fennel
+(tiki.radio ["Small" "Medium" "Large"])
+(tiki.radio items {:prompt "Size:" :value "Medium" :height 6})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | item count | Max visible rows |
+| `:prompt` | `nil` | Label shown above the list |
+| `:value` | `nil` | Pre-selected item value |
+| `:cursor-fg` | cyan | Cursor color |
+| `:selected-fg` | green | Selected bullet color |
+| `:unselected-fg` | white | Unselected item color |
+
+**Keys:** ↑/↓ k/j ctrl-p/n move; g/G first/last; space select; enter confirm (returns selected, or cursor item if none selected); q/ctrl-c abort.
+
+---
+
+### `tiki.filter items opts`
+
+Incremental fuzzy or substring search. Returns `[item, ...]` or `nil`.
+
+```fennel
+(tiki.filter files {:fuzzy true :height 10})
+(tiki.filter items {:multi true :prompt "search: "})
+
+;; Custom renderer — receives item string + matched byte positions
+(tiki.filter items {:render (fn [item positions] (.. "[" item "]"))})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | `10` | Max visible rows |
+| `:fuzzy` | `true` | Fuzzy match (false = substring) |
+| `:multi` | `false` | Enable multi-select |
+| `:alt-screen` | `false` | Use alternate screen buffer |
+| `:prompt` | `"> "` | Search prompt |
+| `:prompt-fg` | cyan | Prompt color |
+| `:cursor-fg` | cyan | Cursor color |
+| `:match-fg` | yellow | Matched char highlight |
+| `:selected-fg` | green | Highlighted item color |
+| `:render` | `nil` | `(fn [item positions] string)` — custom item renderer |
+
+**Keys:** type to filter; ↑/↓ move; tab toggle (multi); enter confirm; backspace delete; ctrl-u clear; ctrl-c/escape abort.
+
+---
+
+## Prompts & Forms
+
+![prompts demo](docs/gif/05-prompts.gif)
+
+### `tiki.confirm prompt opts`
+
+Yes/No prompt. Returns `true`, `false`, or `nil`.
+
+```fennel
+(tiki.confirm "Delete file?")
+(tiki.confirm "Overwrite?" {:default false :affirmative "Yep" :negative "Nope"})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:default` | `true` | Which option starts selected |
+| `:affirmative` | `"Yes"` | Truthy choice label |
+| `:negative` | `"No"` | Falsy choice label |
+| `:prompt-fg` | cyan | Prompt color |
+| `:selected-fg` | green | Selected option color |
+| `:selected-attr` | bold | Extra attribute on selected option |
+| `:unselected-fg` | white | Unselected option color |
+
+**Keys:** ←/→ h/l ctrl-b/f toggle; y confirm yes; n confirm no; enter confirm; ctrl-c abort.
+
+---
+
+### `tiki.dialog message buttons opts`
+
+Styled popup box with navigable button row. Returns the 1-based index of the selected button or `nil`.
+
+```fennel
+(tiki.dialog "Are you sure?" ["Cancel" "Delete"])
+(tiki.dialog "Save before closing?" ["Cancel" "Discard" "Save"]
+             {:border "rounded" :width 44})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:border` | `"rounded"` | Box border style |
+| `:width` | `40` | Inner box width |
+| `:padding` | `1` | Inner padding |
+| `:fg` | white | Message text color |
+| `:active-fg` | cyan | Active button color |
+| `:button-sep` | `"  "` | Separator between buttons |
+
+**Keys:** ←/→ h/l navigate buttons; tab cycle; enter confirm; q/ctrl-c/escape abort.
+
+---
+
+### `tiki.toast message opts`
+
+Timed inline notification. Displays a styled message for `:timeout` seconds then clears.
+
+```fennel
+(tiki.toast "Build succeeded" {:level :success :timeout 2})
+(tiki.toast "Config missing"  {:level :warn})
+(tiki.toast "Connection lost" {:level :error})
+(tiki.toast "Watching files…" {:level :info})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:level` | `:info` | One of `:info` `:warn` `:error` `:success` |
+| `:timeout` | `3` | Seconds to display |
 
 ---
 
 ### `tiki.form fields opts`
 
-Sequential form collecting multiple inputs. Returns `{key → value}` or `nil` if any field is aborted. Fields with `:validate` are re-prompted on failure.
+Sequential form — each field runs its own widget in sequence. Returns `{key → value}` or `nil` if any field is aborted. Fields with `:validate` are re-prompted on failure.
 
 ```fennel
 (tiki.form
-  [{:type     :input
+  [{:type     "input"
     :key      :name
     :label    "Full name"
     :opts     {:prompt "Name: "}
     :validate (fn [v] (when (= v "") "Name cannot be empty"))}
-   {:type     :password
-    :key      :pass
-    :label    "Password"
-    :opts     {:confirm true}
-    :validate (fn [v] (when (< (# v) 8) "Minimum 8 characters"))}
-   {:type  :confirm
-    :key   :agree
-    :label "Accept terms?"}
-   {:type  :write
-    :key   :notes
-    :label "Notes"
-    :opts  {:height 5}}])
+   {:type  "password" :key :pass  :label "Password" :opts {:confirm true}}
+   {:type  "confirm"  :key :agree :label "Accept terms?"}
+   {:type  "write"    :key :notes :label "Notes" :opts {:height 5}}
+   {:type  "date"     :key :dob   :label "Date of birth"}])
 ```
 
-Each field is a table with:
+Each field:
 
-| Field key | Description |
-|-----------|-------------|
-| `:type` | `"input"`, `"password"`, `"confirm"`, or `"write"` |
-| `:key` | Key in the returned result table (falls back to `:label`, then `:type`) |
+| Key | Description |
+|-----|-------------|
+| `:type` | `"input"` `"password"` `"confirm"` `"write"` `"num"` `"date"` |
+| `:key` | Key in the returned map (falls back to `:label`, then position) |
 | `:label` | Optional header printed before the field |
-| `:opts` | Options passed to the underlying widget |
-| `:validate` | `(fn [v] err-or-nil)` — return an error string to re-prompt, `nil` to accept |
+| `:opts` | Options forwarded to the underlying widget |
+| `:validate` | `(fn [v] err-or-nil)` — return an error string to re-prompt |
 
 | Form option | Default | Description |
 |-------------|---------|-------------|
 | `:label-fg` | cyan | Color for field labels |
 
 ---
+
+### `tiki.multi-form fields opts`
+
+Single-screen form — all fields visible simultaneously, tab to move between them. Returns `{key → value}` or `nil`.
+
+Supports `"input"`, `"password"`, `"confirm"`, and `"num"` field types.
+
+```fennel
+(tiki.multi-form
+  [{:type "input"   :label "Username" :key :user :opts {:value "ada"}}
+   {:type "num"     :label "Age"      :key :age  :opts {:value 30 :step 1}}
+   {:type "confirm" :label "Admin?"   :key :admin :opts {:default false}}
+   {:type "password" :label "Token"   :key :token}])
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:active-fg` | cyan | Active field highlight color |
+| `:label-fg` | white | Inactive label color |
+| `:value-fg` | white | Inactive value color |
+| `:cursor-char` | `"█"` | Inline cursor character |
+
+**Keys:** tab advance to next field; enter on last field submits; ctrl-c/escape abort. Within fields: same editing keys as the corresponding standalone widget.
+
+---
+
+### `tiki.date-picker opts`
+
+YYYY-MM-DD date selector. Returns `"YYYY-MM-DD"` or `nil`.
+
+```fennel
+(tiki.date-picker)
+(tiki.date-picker {:value "2025-01-15"})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:value` | today | Pre-filled date string |
+| `:prompt` | `""` | Prompt prefix |
+| `:active-fg` | cyan | Active segment color |
+| `:inactive-fg` | white | Inactive segment color |
+| `:sep` | `"-"` | Segment separator character |
+
+Three segments (year/month/day) are navigated with tab/←/→. ↑/↓ adjust the active segment. Month/day values are clamped to valid ranges (including leap years).
+
+**Keys:** tab/←/→ switch segment; ↑/↓ adjust; enter confirm; ctrl-c/escape abort.
+
+---
+
+## Navigation
+
+![navigation demo](docs/gif/06-navigation.gif)
+
+### `tiki.tabs tab-list opts`
+
+Tabbed content view. Returns the 1-based index of the active tab on enter, or `nil`.
+
+```fennel
+(tiki.tabs
+  [{:label "Overview" :content "Widget library for Fennel/Lua"}
+   {:label "Usage"    :content "(tiki.choose items)"}
+   {:label "Config"   :content "{:height 10}"}])
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:active-fg` | cyan | Active tab color |
+| `:inactive-fg` | dim | Inactive tab color |
+| `:separator` | `"  "` | Space between tabs |
+
+**Keys:** ←/→ h/l navigate tabs; tab cycle; 1–9 jump to tab by number; enter confirm; q/ctrl-c/escape abort.
+
+---
+
+### `tiki.tree nodes opts`
+
+Collapsible tree navigator. Returns `node.data` if set, otherwise `node.label`, or `nil`.
+
+```fennel
+(tiki.tree
+  [{:label "src"
+    :children [{:label "main.fnl" :data "src/main.fnl"}
+               {:label "util.fnl" :data "src/util.fnl"}]}
+   {:label "README.md" :data "README.md"}]
+  {:height 12})
+```
+
+Each node: `{:label string :children [...] :data any}`. Children make a node a directory; `:data` is the return value when selected (defaults to `:label`).
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | `10` | Max visible rows |
+| `:indent` | `2` | Spaces per depth level |
+| `:collapsed-char` | `"▶"` | Icon for collapsed directory |
+| `:expanded-char` | `"▼"` | Icon for expanded directory |
+| `:leaf-char` | `"•"` | Icon for leaf node |
+| `:cursor-fg` | cyan | Cursor item color |
+| `:dir-fg` | blue | Directory label color |
+
+**Keys:** ↑/↓ k/j move; →/l expand; ←/h collapse; space toggle; enter select leaf / toggle dir; g/G first/last; q/ctrl-c/escape abort.
+
+---
+
+### `tiki.file-picker opts`
+
+Interactive filesystem browser. Returns the selected file path or `nil`.
+
+```fennel
+(tiki.file-picker {:path "." :height 12})
+(tiki.file-picker {:dirs-only true :show-hidden true})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:path` | `"."` | Starting directory |
+| `:height` | `10` | Max visible rows |
+| `:dirs-only` | `false` | Show only directories |
+| `:show-hidden` | `false` | Show dot-files |
+| `:cursor-fg` | cyan | Cursor item color |
+| `:dir-fg` | blue | Directory name color |
+
+**Keys:** ↑/↓ k/j move; enter open dir or select file; backspace/h go up; q/ctrl-c/escape abort.
+
+---
+
+### `tiki.pager text opts`
+
+Scrollable text viewer with incremental search. Blocks until quit.
+
+```fennel
+(tiki.pager long-text)
+(tiki.pager content {:height 30 :wrap true})
+(tiki.pager code {:highlight (fn [line] (syntax-color line))})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | terminal rows − 1 | Visible line count |
+| `:wrap` | `false` | Word-wrap lines to terminal width (toggle with `w`) |
+| `:highlight` | `nil` | `(fn [line] styled-line)` — applied after search highlighting |
+| `:alt-screen` | `false` | Use alternate screen buffer |
+
+**Keys:** ↑/↓ k/j scroll line; space/ctrl-f half-page down; ctrl-b half-page up; page-up/down full page; g/G top/bottom; / search; n/N next/prev match; l toggle line numbers; w toggle wrap; q/ctrl-c quit.
+
+---
+
+### `tiki.viewport content opts`
+
+Inline scrollable viewer — like `pager` but without search or alternate screen. Returns `nil`.
+
+```fennel
+(tiki.viewport long-text)
+(tiki.viewport content {:height 15})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:height` | `10` | Visible line count |
+
+**Keys:** ↑/↓ k/j scroll line; page-up/down page; g/G top/bottom; q/ctrl-c/escape quit.
+
+---
+
+## Progress & Async
+
+![progress demo](docs/gif/07-progress.gif)
 
 ### `tiki.spin f opts`
 
@@ -404,7 +823,7 @@ Animated spinner while a function runs. The function runs as a coroutine; yield 
 | `:interval` | `80` | Frame delay in milliseconds |
 | `:spinner-fg` | cyan | Spinner color |
 
-Available spinners: `"dots"`, `"dots2"`, `"line"`, `"bounce"`, `"arrow"`.
+Available spinners: `"dots"` `"dots2"` `"line"` `"bounce"` `"arrow"`.
 
 ---
 
@@ -414,42 +833,18 @@ Run multiple tasks in parallel, each with its own spinner line. Returns a table 
 
 ```fennel
 (tiki.multi-spin
-  [{:f     (fn [] (do-work) "ok")   :title "Compiling"}
-   {:f     (fn [] (run-tests) "ok") :title "Testing"}
-   {:f     (fn [] (bundle) "ok")    :title "Bundling"}])
+  [{:f (fn [] (do-work) "ok")   :title "Compiling"}
+   {:f (fn [] (run-tests) "ok") :title "Testing"}
+   {:f (fn [] (bundle) "ok")    :title "Bundling"}])
 ```
 
-Each task is `{:f fn :title string}`. Tasks run as coroutines — yield to allow other tasks to advance. A green `✓` replaces the spinner when a task finishes.
-
-Accepts the same `:spinner`, `:interval`, `:spinner-fg` opts as `spin`.
-
----
-
-### `tiki.toast message opts`
-
-Timed inline notification. Displays a styled message for `:timeout` seconds then clears it.
-
-```fennel
-(tiki.toast "Build succeeded" {:level :success :timeout 2})
-(tiki.toast "Config missing"  {:level :warn})
-(tiki.toast "Connection lost" {:level :error})
-(tiki.toast "Watching files…" {:level :info})
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:level` | `:info` | One of `:info` `:warn` `:error` `:success` |
-| `:timeout` | `3` | Seconds to display |
+Tasks run as coroutines — yield to allow other tasks to advance. A green `✓` replaces the spinner when a task finishes. Accepts the same `:spinner`, `:interval`, `:spinner-fg` opts as `spin`.
 
 ---
 
 ### `tiki.progress f opts`
 
 Determinate or indeterminate progress bar. Calls `f` with an `update` function.
-
-- Determinate: `(update value total)` — renders a filled bar
-- Indeterminate: `(update)` — renders a bouncing animation
-- ETA and rate display require a few `update` calls to warm up their estimates
 
 ```fennel
 ;; Determinate
@@ -481,7 +876,7 @@ Determinate or indeterminate progress bar. Calls `f` with an `update` function.
 | `:indeterminate` | `false` | Bounce animation instead of fill |
 | `:show-eta` | `false` | Show estimated time remaining |
 | `:show-rate` | `false` | Show throughput rate |
-| `:unit` | `nil` | Unit string for rate display; `"B"` enables KB/MB auto-scaling |
+| `:unit` | `nil` | Unit string; `"B"` enables KB/MB auto-scaling |
 | `:fill` | `"█"` | Filled block character |
 | `:empty` | `"░"` | Empty block character |
 | `:block-size` | `4` | Bounce block width (indeterminate) |
@@ -491,61 +886,23 @@ Determinate or indeterminate progress bar. Calls `f` with an `update` function.
 
 ### `tiki.multi-progress tasks opts`
 
-Stacked progress bars for parallel tasks running as coroutines. Blocks until all tasks complete.
+Stacked progress bars for parallel tasks. Blocks until all complete.
 
 ```fennel
 (tiki.multi-progress
   [{:f     (fn [update] (for [i 1 100] (update i 100) (process i)))
     :title "Compiling"}
    {:f     (fn [update] (for [i 1 50]  (update i 50)  (run-test i)))
-    :title "Running tests"}
-   {:f     (fn [update] (for [i 1 20]  (update i 20)  (bundle i)))
-    :title "Bundling"}])
+    :title "Running tests"}])
 ```
 
-Each task is `{:f fn :title string}` where `f` receives an `(update value total)` function. The `update` call stores progress state and yields to the render loop. A green `✓` marks each bar when its task finishes.
-
-Accepts the same `:fill`, `:empty`, `:bar-fg`, `:width`, and `:interval` opts as `progress`.
+Each task is `{:f fn :title string}` where `f` receives `(update value total)`. A green `✓` marks each bar when done. Accepts the same `:fill`, `:empty`, `:bar-fg`, `:width`, `:interval` opts as `progress`.
 
 ---
 
-### `tiki.pager text opts`
+## Table
 
-Scrollable text viewer with incremental search. Blocks until the user quits.
-
-```fennel
-(tiki.pager long-text)
-(tiki.pager content {:height 30 :wrap true})
-
-;; Syntax highlight hook — called per display line after search highlight
-(tiki.pager code {:highlight (fn [line] (syntax-color line))})
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:height` | terminal rows − 1 | Visible line count |
-| `:wrap` | `false` | Word-wrap lines to terminal width (toggle with `w`) |
-| `:highlight` | `nil` | `(fn [line] styled-line)` — applied to each visible line after search highlighting |
-| `:alt-screen` | `false` | Use alternate screen buffer |
-
-**Keys**
-
-| Key | Action |
-|-----|--------|
-| ↑/↓ k/j | Scroll one line |
-| space ctrl-f | Half-page down |
-| ctrl-b | Half-page up |
-| page-up/page-down | Full page up/down |
-| g/G | Top/bottom |
-| / | Enter search mode |
-| n/N | Next/prev match |
-| l | Toggle line numbers |
-| w | Toggle word-wrap |
-| q/ctrl-c | Quit |
-
-In search mode: type to filter, enter to confirm, escape/ctrl-c to cancel.
-
----
+![table demo](docs/gif/08-table.gif)
 
 ### `tiki.tbl headers rows opts`
 
@@ -566,92 +923,51 @@ Scrollable table with optional row selection and column sort. Returns the select
 | `:sep` | `"  "` | Column separator string |
 | `:header-fg` | cyan | Header row color |
 | `:selected-fg` | green | Highlighted row color |
+| `:sort-col` | `nil` | Initial sort column index |
+| `:sort-asc` | `true` | Initial sort direction |
 
-**Keys**
-
-| Key | Action |
-|-----|--------|
-| ↑/↓ k/j | Move cursor |
-| g/G | First/last row |
-| `<` / `>` | Sort by prev/next column |
-| `s` | Reverse sort direction |
-| `0` | Clear sort |
-| enter | Select row |
-| q/ctrl-c | Quit |
+**Keys:** ↑/↓ k/j move; g/G first/last; `<`/`>` sort by prev/next column; `s` reverse sort; `0` clear sort; enter select row; q/ctrl-c quit.
 
 Column sort is numeric-aware: columns where all visible values parse as numbers sort numerically.
 
 ---
 
-### `tiki.style text opts`
+## Utilities
 
-Non-interactive. Renders styled/boxed text and returns the result string.
+### `tiki.wrap text width`
+
+Word-wrap text to a maximum column width. Returns the wrapped string.
 
 ```fennel
-(print (tiki.style "Hello!" {:border  :rounded
-                             :padding 1
-                             :fg      tiki.ansi.fg.green
-                             :bold    true}))
-```
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `:border` | string | `"rounded"` `"normal"` `"double"` `"thick"` `"ascii"` `"none"` |
-| `:padding` | number or table | Inner padding — number for all sides, or `{:top :bottom :left :right}` |
-| `:margin` | number or table | Outer margin — same format as padding |
-| `:width` | number | Minimum inner width (content padded to fill) |
-| `:align` | string | `"left"` (default) `"center"` `"right"` |
-| `:fg` | ANSI code | Text foreground color |
-| `:bg` | ANSI code | Text background color |
-| `:bold` | bool | Bold text |
-| `:italic` | bool | Italic text |
-| `:underline` | bool | Underlined text |
-
-Available border character sets (`tiki.borders`):
-
-```
-rounded  ╭─╮  double  ╔═╗  thick  ┏━┓  normal  ┌─┐  ascii  +-+
-         │ │          ║ ║         ┃ ┃           │ │          | |
-         ╰─╯          ╚═╝         ┗━┛           └─┘          +-+
+(print (tiki.wrap "A very long sentence that needs wrapping." 40))
 ```
 
 ---
 
-### `tiki.hbox items opts`
-
-Arrange rendered strings side by side. Each item is a (possibly multi-line) string — e.g. from `tiki.style`. Returns the composed string.
+### Clipboard
 
 ```fennel
-(print (tiki.hbox
-  [(tiki.style "Left\npanel\nthree lines" {:border "rounded" :padding 1})
-   (tiki.style "Center\npanel"            {:border "rounded" :padding 1})
-   (tiki.style "Right"                    {:border "rounded" :padding 1})]
-  {:gap 1 :valign "bottom"}))
+(tiki.clipboard-copy "text to copy")
+(local text (tiki.clipboard-paste))   ; returns string or nil
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:gap` | `0` | Spaces between columns |
-| `:valign` | `"top"` | Vertical alignment when columns differ in height: `"top"` `"center"` `"bottom"` |
-
-Each column is padded to its own widest line so columns stay aligned regardless of content.
+Uses `pbcopy`/`pbpaste` on macOS, `xclip` or `xsel` on Linux. No error is raised if none are available.
 
 ---
 
-### `tiki.vbox items opts`
+### Fuzzy matching
 
-Stack rendered strings vertically. Returns the composed string.
+The filter widget's matching functions are also exported:
 
 ```fennel
-(print (tiki.vbox
-  [(tiki.style "Top panel"    {:border "rounded" :width 40})
-   (tiki.style "Bottom panel" {:border "rounded" :width 40})]
-  {:gap 1}))
-```
+;; Returns a list of matched byte positions, or nil
+(tiki.fuzzy-match "hello world" "hlo")   ; → {1 3 5}
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:gap` | `0` | Blank lines between rows |
+;; Filter a list of strings
+;; Returns [{:i orig-index :item string :positions [...]}]
+(local filter-m (require :tiki.widget.filter))
+(filter-m.filter-items items query fuzzy?)
+```
 
 ---
 
@@ -673,16 +989,17 @@ Theme keys (all optional):
 
 | Key | Widgets affected |
 |-----|-----------------|
-| `:cursor-fg` | choose, filter, input, password, write |
-| `:prompt-fg` | filter, input, password, write, confirm |
-| `:selected-fg` | choose, filter, confirm, table |
+| `:cursor-fg` | choose, filter, input, password, write, autocomplete |
+| `:prompt-fg` | filter, input, password, write, confirm, autocomplete |
+| `:selected-fg` | choose, filter, confirm, table, radio, checklist |
 | `:selected-attr` | choose, filter, confirm |
-| `:unselected-fg` | choose, filter, confirm |
+| `:unselected-fg` | choose, filter, confirm, radio, checklist |
 | `:match-fg` | filter |
 | `:header-fg` | table |
-| `:label-fg` | form |
+| `:label-fg` | form, multi-form |
 | `:spinner-fg` | spin, multi-spin |
-| `:bar-fg` | progress |
+| `:bar-fg` | progress, gauge |
+| `:active-fg` | dialog, multi-form, date-picker, tabs |
 
 Per-widget options always take precedence over the theme.
 
@@ -739,33 +1056,6 @@ ansi.screen.alt-on       ansi.screen.alt-off
 
 ---
 
-## Clipboard
-
-```fennel
-(tiki.clipboard-copy "text to copy")
-(local text (tiki.clipboard-paste))   ; returns string or nil
-```
-
-Uses `pbcopy`/`pbpaste` on macOS, `xclip` or `xsel` on Linux. No error is raised if none are available.
-
----
-
-## Fuzzy matching
-
-The filter widget's matching functions are also exported:
-
-```fennel
-;; Returns a list of matched byte positions, or nil
-(tiki.fuzzy-match "hello world" "hlo")   ; → {1 3 5}
-
-;; Filter a list of strings
-;; Returns [{:i orig-index :item string :positions [...]}]
-(local filter-m (require :tiki.widget.filter))
-(filter-m.filter-items items query fuzzy?)
-```
-
----
-
 ## Terminal resize (SIGWINCH)
 
 The pager responds to terminal resize automatically. Other widgets re-query the terminal size on each render. For resize support, build the optional native extension:
@@ -774,7 +1064,7 @@ The pager responds to terminal resize automatically. Other widgets re-query the 
 make compile-native   # compiles src/tiki_posix_native.c → tiki/posix_native.so
 ```
 
-The extension is loaded at runtime with a graceful fallback if absent. Without it, resize is detected on the next key event via `stty size`.
+The extension is loaded at runtime with a graceful fallback. Without it, resize is detected on the next key event via `stty size`.
 
 ---
 
@@ -792,6 +1082,7 @@ make demo            # run the interactive demo
 make compile         # compile all .fnl → lua/
 make compile-native  # build SIGWINCH C extension → tiki/posix_native.so
 make repl            # start a Fennel REPL with the correct path
+bash docs/record.sh  # regenerate showcase GIFs (requires asciinema + agg)
 ```
 
 Tests live in `fnl/tiki/test/`, one file per module. The test runner is `test.fnl` using [faith](https://git.sr.ht/~technomancy/faith) (vendored at `fnl/faith.fnl`).
