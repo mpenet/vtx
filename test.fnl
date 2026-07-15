@@ -1,9 +1,27 @@
-(local faith (require :faith))
+(local faith (require "faith"))
 
-(faith.run [:tiki.test.ansi
-            :tiki.test.util
-            :tiki.test.theme
-            :tiki.test.style
-            :tiki.test.filter
-            :tiki.test.pager
-            :tiki.test.table])
+(faith.run ["tiki.test.ansi"
+            "tiki.test.checklist"
+            "tiki.test.choose"
+            "tiki.test.date-picker"
+            "tiki.test.dialog"
+            "tiki.test.file-picker"
+            "tiki.test.filter"
+            "tiki.test.gauge"
+            "tiki.test.gradient"
+            "tiki.test.input"
+            "tiki.test.key-help"
+            "tiki.test.layout"
+            "tiki.test.multi-form"
+            "tiki.test.num-input"
+            "tiki.test.pager"
+            "tiki.test.progress"
+            "tiki.test.radio"
+            "tiki.test.slider"
+            "tiki.test.sparkline"
+            "tiki.test.style"
+            "tiki.test.table"
+            "tiki.test.tabs"
+            "tiki.test.theme"
+            "tiki.test.tree"
+            "tiki.test.util"])

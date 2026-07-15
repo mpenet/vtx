@@ -9,6 +9,7 @@
 (local default-opts {:cursor-fg ansi.fg.green
                      :header nil
                      :height 6
+                     :on-change nil
                      :prompt "> "
                      :prompt-fg ansi.fg.cyan
                      :value ""
@@ -42,9 +43,10 @@
     (var offset 0)
     (var result nil)
     (var top-distance 0)
-    (var undo-lines nil)
+    (var undo-lines (icollect [_ l (ipairs lines)] l))
     (var undo-row 1)
     (var undo-col 0)
+    (var prev-content (table.concat lines "\n"))
     (var term-w (let [(_ c) (term.size)]
                   (or c 80)))
     (fn clamp-col []
@@ -201,7 +203,12 @@
                            _ (when (and (= (type k) "string") (= (# k) 1) (>= (string.byte k) 32))
                                (let [cur-line (. lines row)]
                                  (tset lines row (.. (cur-line:sub 1 col) k (cur-line:sub (+ col 1))))
-                                 (set col (+ col 1)))))))))
+                                 (set col (+ col 1)))))
+                         (when opts.on-change
+                           (let [content (table.concat lines "\n")]
+                             (when (not= content prev-content)
+                               (opts.on-change content)
+                               (set prev-content content))))))))
     (term.cursor-up top-distance)
     (let [h (widget-height)]
       (for [_ 1 h]

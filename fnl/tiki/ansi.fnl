@@ -115,12 +115,78 @@
 (fn strip [s]
   (s:gsub "\027%[[%d;]*m" ""))
 
+;; Sorted [start end] pairs of Unicode codepoints that occupy 2 terminal columns
+(local wide-ranges
+  [[0x1100 0x115F]
+   [0x2E80 0x33FF]
+   [0x3400 0x9FFF]
+   [0xA000 0xA4CF]
+   [0xA960 0xA97F]
+   [0xAC00 0xD7AF]
+   [0xF900 0xFAFF]
+   [0xFE10 0xFE6F]
+   [0xFF01 0xFF60]
+   [0xFFE0 0xFFE6]
+   [0x1B000 0x1B2FB]
+   [0x1F200 0x1F9FF]
+   [0x1FA00 0x1FAF8]
+   [0x20000 0x3FFFD]])
+
+(fn wide? [cp]
+  (var lo 1)
+  (var hi (# wide-ranges))
+  (var result false)
+  (while (and (<= lo hi) (not result))
+    (let [mid (math.floor (/ (+ lo hi) 2))
+          r (. wide-ranges mid)]
+      (if (< cp (. r 1))
+          (set hi (- mid 1))
+          (> cp (. r 2))
+          (set lo (+ mid 1))
+          (set result true))))
+  result)
+
+(fn utf8-codepoint [s i]
+  (let [b (s:byte i)]
+    (if (< b 128)
+        (values b 1)
+        (< b 224)
+        (values (+ (* (- b 192) 64) (- (s:byte (+ i 1)) 128)) 2)
+        (< b 240)
+        (values (+ (* (- b 224) 4096)
+                   (* (- (s:byte (+ i 1)) 128) 64)
+                   (- (s:byte (+ i 2)) 128)) 3)
+        (values (+ (* (- b 240) 262144)
+                   (* (- (s:byte (+ i 1)) 128) 4096)
+                   (* (- (s:byte (+ i 2)) 128) 64)
+                   (- (s:byte (+ i 3)) 128)) 4))))
+
+(fn codepoint-width [cp]
+  (if (< cp 32) 0
+      (< cp 127) 1
+      (< cp 160) 0
+      (and (>= cp 0x0300) (<= cp 0x036F)) 0
+      (and (>= cp 0x1DC0) (<= cp 0x1DFF)) 0
+      (and (>= cp 0x20D0) (<= cp 0x20FF)) 0
+      (and (>= cp 0xFE20) (<= cp 0xFE2F)) 0
+      (wide? cp) 2
+      1))
+
+(local no-color (or (os.getenv "NO_COLOR") (os.getenv "NO_COLOUR")))
+
 (fn len [s]
-  (let [s2 (strip s)]
-    (# (s2:gsub "[\128-\191]" ""))))
+  (let [s2 (strip s)
+        slen (# s2)]
+    (var i 1)
+    (var w 0)
+    (while (<= i slen)
+      (let [(cp char-len) (utf8-codepoint s2 i)]
+        (set w (+ w (codepoint-width cp)))
+        (set i (+ i char-len))))
+    w))
 
 (fn style [text & attrs]
-  (if (= (# attrs) 0)
+  (if (or no-color (= (# attrs) 0))
       text
       (.. (table.concat attrs "") text reset)))
 
@@ -131,6 +197,7 @@
  :blink-off blink-off
  :bold bold
  :bold-off bold-off
+ :codepoint-width codepoint-width
  :cursor cursor
  :dim dim
  :fg fg
@@ -148,4 +215,5 @@
  :strip strip
  :style style
  :underline underline
- :underline-off underline-off}
+ :underline-off underline-off
+ :utf8-codepoint utf8-codepoint}

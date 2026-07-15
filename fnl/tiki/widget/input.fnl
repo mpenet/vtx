@@ -6,7 +6,10 @@
 
 (local theme (require "tiki.theme"))
 
-(local default-opts {:cursor-fg ansi.fg.green
+(local default-opts {:complete nil
+                     :cursor-fg ansi.fg.green
+                     :history []
+                     :on-change nil
                      :placeholder ""
                      :prompt "> "
                      :prompt-fg ansi.fg.cyan
@@ -29,6 +32,16 @@
                         "")]
           (.. "\r" prompt before cur after ansi.screen.clear-right)))))
 
+(fn common-prefix [candidates]
+  (var pfx (. candidates 1))
+  (each [_ c (ipairs candidates)]
+    (var j 0)
+    (let [maxlen (math.min (# pfx) (# c))]
+      (while (and (< j maxlen) (= (pfx:sub (+ j 1) (+ j 1)) (c:sub (+ j 1) (+ j 1))))
+        (set j (+ j 1))))
+    (set pfx (pfx:sub 1 j)))
+  pfx)
+
 (fn input [user-opts]
   (let [opts (collect [k v (pairs default-opts)] k v)]
     (theme.apply opts)
@@ -40,11 +53,14 @@
     (var result nil)
     (var undo-buf "")
     (var undo-pos 0)
+    (var hist-idx (+ (# opts.history) 1))
+    (var saved-buf "")
     (term.with-raw (fn []
                      (var running true)
                      (while running
                        (term.write (render buf pos opts))
-                       (let [k (term.read-key)]
+                       (let [prev-buf buf
+                             k (term.read-key)]
                          (when (not= k "\026")
                            (set undo-buf buf)
                            (set undo-pos pos))
@@ -98,10 +114,36 @@
                                     (set undo-pos pos)
                                     (set buf tb)
                                     (set pos tp))
+                           "\t" (when opts.complete
+                                  (let [candidates (opts.complete buf)]
+                                    (when (and candidates (> (# candidates) 0))
+                                      (let [pfx (if (= (# candidates) 1)
+                                                    (. candidates 1)
+                                                    (common-prefix candidates))]
+                                        (when (> (# pfx) (# buf))
+                                          (set buf pfx)
+                                          (set pos (# buf)))))))
+                           "\016" (when (> hist-idx 1)
+                                    (when (= hist-idx (+ (# opts.history) 1))
+                                      (set saved-buf buf))
+                                    (set hist-idx (- hist-idx 1))
+                                    (set buf (. opts.history hist-idx))
+                                    (set pos (# buf)))
+                           "\014" (when (<= hist-idx (# opts.history))
+                                    (set hist-idx (+ hist-idx 1))
+                                    (if (> hist-idx (# opts.history))
+                                        (do
+                                          (set buf saved-buf)
+                                          (set pos (# buf)))
+                                        (do
+                                          (set buf (. opts.history hist-idx))
+                                          (set pos (# buf)))))
                            _ (when (and (= (type k) "string") (= (# k) 1) (>= (string.byte k) 32))
                                (set buf (.. (buf:sub 1 pos) k (buf:sub (+ pos 1))))
-                               (set pos (+ pos 1))))))))
+                               (set pos (+ pos 1))))
+                         (when (and opts.on-change (not= buf prev-buf))
+                           (opts.on-change buf))))))
     (term.writeln "")
     result))
 
-{:input input}
+{:common-prefix common-prefix :input input}

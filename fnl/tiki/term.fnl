@@ -30,7 +30,11 @@
 
 (fn read-key []
   (let [ch (read-byte)]
-    (if (= ch "\027")
+    (if (not ch)
+        (if (posix.resized?)
+            "resize"
+            nil)
+        (= ch "\027")
         (let [next (read-byte)]
           (if (or (not next) (= next ""))
               "escape"
@@ -86,14 +90,22 @@
 (fn size []
   (posix.term-size))
 
-(fn with-raw [f]
-  (raw-mode-enter)
-  (cursor-hide)
-  (let [(ok err) (pcall f)]
-    (pcall cursor-show)
-    (pcall raw-mode-exit)
-    (when (not ok)
-      (error err))))
+(fn with-raw [f ?opts]
+  (when (and ?opts ?opts.alt-screen)
+    (write ansi.screen.alt-on)
+    (write ansi.screen.clear)
+    (write ansi.screen.home))
+  (let [saved (posix.stty-save)]
+    (posix.raw-mode-enter)
+    (let [(ok err) (pcall (fn []
+                            (cursor-hide)
+                            (f)))]
+      (pcall cursor-show)
+      (pcall posix.stty-restore saved)
+      (when (and ?opts ?opts.alt-screen)
+        (pcall write ansi.screen.alt-off))
+      (when (not ok)
+        (error err)))))
 
 {:clear-line clear-line
  :clear-right clear-right

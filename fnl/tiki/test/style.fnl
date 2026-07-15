@@ -178,15 +178,111 @@ cd" {:border "rounded"}))]
     (faith.is (: (. lines 3) "find" "cd" 1 true))))
 
 (fn test-multiline-3 []
-  (let [lines (util.split-lines (style-m.style "a
-b
-c" {:border "rounded"}))]
+  (let [nl (string.char 10)
+        lines (util.split-lines (style-m.style (.. "a" nl "b" nl "c") {:border "rounded"}))]
     (faith.= 5 (# lines))))
 
 (fn test-multiline-width-uses-widest []
   (let [lines (util.split-lines (style-m.style "a
 long line" {:border "rounded"}))]
     (faith.= (ansi.len (. lines 2)) (ansi.len (. lines 3)))))
+
+(fn test-width-of-single []
+  (faith.= 5 (style-m.width-of "hello")))
+
+(fn test-width-of-multiline []
+  (faith.= 9 (style-m.width-of "hi
+long word
+abc")))
+
+(fn test-width-of-ansi []
+  (faith.= 5 (style-m.width-of (ansi.style "hello" ansi.bold))))
+
+(fn test-width-of-empty []
+  (faith.= 0 (style-m.width-of "")))
+
+(fn test-height-of-single []
+  (faith.= 1 (style-m.height-of "hello")))
+
+(fn test-height-of-two []
+  (faith.= 2 (style-m.height-of "a
+b")))
+
+(fn test-height-of-three []
+  (faith.= 3 (style-m.height-of "a
+b
+c")))
+
+(fn test-merge-basic []
+  (let [s (style-m.merge {:bold true :fg "red"} {:fg "blue"})]
+    (faith.= "blue" s.fg)
+    (faith.= true s.bold)))
+
+(fn test-merge-nil-base []
+  (faith.= "blue" (. (style-m.merge nil {:fg "blue"}) "fg")))
+
+(fn test-merge-nil-extra []
+  (faith.= "red" (. (style-m.merge {:fg "red"} nil) "fg")))
+
+(fn test-merge-both-nil []
+  (faith.= 0 (accumulate [n 0 _ _ (pairs (style-m.merge nil nil))] (+ n 1))))
+
+(fn test-place-pads-right []
+  (faith.= "hello     " (style-m.place "hello" {:width 10})))
+
+(fn test-place-align-right []
+  (faith.= "     hello" (style-m.place "hello" {:halign "right" :width 10})))
+
+(fn test-place-align-center []
+  (faith.= "  hi  " (style-m.place "hi" {:halign "center" :width 6})))
+
+(fn test-place-height-adds-lines []
+  (faith.= 3 (style-m.height-of (style-m.place "hello" {:height 3 :width 10}))))
+
+(fn test-place-valign-bottom []
+  (let [lines (util.split-lines (style-m.place "x" {:height 3 :valign "bottom" :width 4}))]
+    (faith.= "    " (. lines 1))
+    (faith.= "    " (. lines 2))
+    (faith.is (: (. lines 3) "find" "x" 1 true))))
+
+(fn test-place-valign-middle []
+  (let [lines (util.split-lines (style-m.place "x" {:height 3 :valign "middle" :width 4}))]
+    (faith.is (: (. lines 2) "find" "x" 1 true))))
+
+(fn test-place-no-opts []
+  (faith.= "hello" (style-m.place "hello" {})))
+
+(fn test-separator-width []
+  (let [s (style-m.separator {:width 10})]
+    (faith.= 10 (ansi.len s))))
+
+(fn test-separator-with-label []
+  (let [s (ansi.strip (style-m.separator {:label "hi" :width 20}))]
+    (faith.is (: s "find" "hi" 1 true))))
+
+(fn test-separator-no-opts []
+  (let [s (style-m.separator {})]
+    (faith.= 40 (ansi.len s))))
+
+(fn test-separator-label-total-width []
+  (let [s (ansi.strip (style-m.separator {:label "x" :width 11}))]
+    (faith.= 11 (ansi.len s))))
+
+(fn test-separator-none-border []
+  (let [s (style-m.separator {:border "none" :width 5})]
+    (faith.= "" s)))
+
+(fn test-separator-rounded []
+  (let [s (ansi.strip (style-m.separator {:border "rounded" :width 10}))]
+    (faith.is (: s "find" "─" 1 true))))
+
+(fn test-separator-label-centered []
+  (let [s (ansi.strip (style-m.separator {:label "x" :width 11}))]
+    (faith.is (: s "find" "x" 1 true))))
+
+(fn test-wrap-in-style []
+  (let [lines (util.split-lines (style-m.style "hello world" {:width 5 :wrap true}))]
+    (faith.= 2 (# lines))))
 
 {:test-align-center test-align-center
  :test-align-center-odd test-align-center-odd
@@ -211,10 +307,17 @@ long line" {:border "rounded"}))]
  :test-empty-text test-empty-text
  :test-fg-bg-combined test-fg-bg-combined
  :test-fg-stripped test-fg-stripped
+ :test-height-of-single test-height-of-single
+ :test-height-of-three test-height-of-three
+ :test-height-of-two test-height-of-two
  :test-italic-stripped test-italic-stripped
  :test-margin-left test-margin-left
  :test-margin-top test-margin-top
  :test-margin-top-bottom test-margin-top-bottom
+ :test-merge-basic test-merge-basic
+ :test-merge-both-nil test-merge-both-nil
+ :test-merge-nil-base test-merge-nil-base
+ :test-merge-nil-extra test-merge-nil-extra
  :test-multi-word test-multi-word
  :test-multiline test-multiline
  :test-multiline-3 test-multiline-3
@@ -225,8 +328,27 @@ long line" {:border "rounded"}))]
  :test-padding-no-border-content test-padding-no-border-content
  :test-padding-top3 test-padding-top3
  :test-padding-uniform test-padding-uniform
+ :test-place-align-center test-place-align-center
+ :test-place-align-right test-place-align-right
+ :test-place-height-adds-lines test-place-height-adds-lines
+ :test-place-no-opts test-place-no-opts
+ :test-place-pads-right test-place-pads-right
+ :test-place-valign-bottom test-place-valign-bottom
+ :test-place-valign-middle test-place-valign-middle
  :test-plain test-plain
+ :test-separator-label-centered test-separator-label-centered
+ :test-separator-label-total-width test-separator-label-total-width
+ :test-separator-no-opts test-separator-no-opts
+ :test-separator-none-border test-separator-none-border
+ :test-separator-rounded test-separator-rounded
+ :test-separator-width test-separator-width
+ :test-separator-with-label test-separator-with-label
  :test-underline-stripped test-underline-stripped
  :test-width-border test-width-border
  :test-width-narrower-than-content test-width-narrower-than-content
- :test-width-no-border test-width-no-border}
+ :test-width-no-border test-width-no-border
+ :test-width-of-ansi test-width-of-ansi
+ :test-width-of-empty test-width-of-empty
+ :test-width-of-multiline test-width-of-multiline
+ :test-width-of-single test-width-of-single
+ :test-wrap-in-style test-wrap-in-style}

@@ -71,7 +71,7 @@
               (if (and pw2 (= pw1 pw2))
                   pw1
                   (do
-                    (print "Passwords do not match.")
+                    (term.writeln "Passwords do not match.")
                     nil)))))
         (read-password opts nil))))
 

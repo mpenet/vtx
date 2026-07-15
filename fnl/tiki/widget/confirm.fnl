@@ -52,8 +52,8 @@
                            "n" (do
                                  (set result false)
                                  (set running false))
-                           "\003" (do
-                                    (set running false)))))))
+                           (where (or "\003" "escape")) (do
+                                                          (set running false)))))))
     (term.writeln "")
     result))
 

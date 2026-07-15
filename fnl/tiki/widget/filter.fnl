@@ -6,7 +6,8 @@
 
 (local theme (require "tiki.theme"))
 
-(local default-opts {:cursor "> "
+(local default-opts {:alt-screen false
+                     :cursor "> "
                      :cursor-fg ansi.fg.cyan
                      :fuzzy true
                      :height 10
@@ -14,6 +15,7 @@
                      :multi false
                      :prompt "> "
                      :prompt-fg ansi.fg.cyan
+                     :render nil
                      :selected-attr ansi.bold
                      :selected-fg ansi.fg.green
                      :unselected-fg ansi.fg.white})
@@ -85,7 +87,6 @@
     (term.with-raw (fn []
                      (var running true)
                      (while running
-                       (set matches (filter-items items query opts.fuzzy))
                        (clamp-cursor)
                        (set term-w (let [(_ c) (term.size)]
                                      (or c 80)))
@@ -119,7 +120,9 @@
                                                                        2
                                                                        0)
                                                             max-item-w (- term-w cursor-width mark-w)
-                                                            raw-text (util.trunc (highlight m.item m.positions opts.match-fg) max-item-w)
+                                                            raw-text (util.trunc (if opts.render
+                                                                                     (opts.render m.item m.positions)
+                                                                                     (highlight m.item m.positions opts.match-fg)) max-item-w)
                                                             text (if is-cursor
                                                                      (ansi.style (.. multi-mark raw-text) opts.selected-attr opts.selected-fg)
                                                                      (.. multi-mark raw-text))]
@@ -127,7 +130,7 @@
                                                       "") ansi.screen.clear-right "\r
 "))))
                          (term.cursor-up (+ opts.height 1))
-                         (term.cursor-col (+ (ansi.len opts.prompt) (# query) 1))
+                         (term.cursor-col (+ (ansi.len opts.prompt) (ansi.len query) 1))
                          (let [k (term.read-key)]
                            (match k
                              (where (or "up" "\016")) (set cursor (math.max 1 (- cursor 1)))
@@ -156,20 +159,26 @@
                              (where (or "\003" "\027")) (set running false)
                              (where (or "\b" "\127")) (when (> (# query) 0)
                                                         (set query (query:sub 1 (- (# query) 1)))
+                                                        (set matches (filter-items items query opts.fuzzy))
                                                         (set cursor 1)
                                                         (set offset 0))
                              "\021" (do
                                       (set query "")
+                                      (set matches (filter-items items query opts.fuzzy))
                                       (set cursor 1)
                                       (set offset 0))
+                             "resize" (set term-w (let [(_ c) (term.size)]
+                                                    (or c 80)))
                              _ (when (and (= (type k) "string") (= (# k) 1) (>= (string.byte k) 32))
                                  (set query (.. query k))
+                                 (set matches (filter-items items query opts.fuzzy))
                                  (set cursor 1)
-                                 (set offset 0))))))))
-    (for [_ 1 (+ opts.height 1)]
-      (term.write (.. "\r" ansi.screen.clear-right "\r
+                                 (set offset 0))))))) {:alt-screen opts.alt-screen})
+    (when (not opts.alt-screen)
+      (for [_ 1 (+ opts.height 1)]
+        (term.write (.. "\r" ansi.screen.clear-right "\r
 ")))
-    (term.cursor-up (+ opts.height 1))
+      (term.cursor-up (+ opts.height 1)))
     result))
 
 {:filter filter :filter-items filter-items :fuzzy-match fuzzy-match}

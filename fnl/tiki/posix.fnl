@@ -1,5 +1,14 @@
 (var tty-in nil)
 
+(local (native-ok native) (pcall require "tiki.posix_native"))
+
+(local native (if native-ok
+                  native
+                  nil))
+
+(when native
+  (native.setup_winch))
+
 (fn tty-open []
   (when (not tty-in)
     (set tty-in (io.open "/dev/tty" "rb")))
@@ -18,8 +27,15 @@
         out))))
 
 (fn stty-restore [saved]
-  (when (and saved (saved:match "^[%w:=]+$"))
+  (when (and saved (= (type saved) "string") (saved:match "^[%w:=/.-]+$"))
     (os.execute (.. "stty " saved " < /dev/tty 2>/dev/null"))))
+
+(fn sleep [seconds]
+  (if native
+      (native.sleep seconds)
+      (let [h (io.popen (.. "sleep " seconds " 2>/dev/null"))]
+        (when h
+          (h:close)))))
 
 (fn raw-mode-enter []
   (os.execute "stty raw -echo -isig min 1 time 1 < /dev/tty 2>/dev/null"))
@@ -28,6 +44,11 @@
   (let [f (tty-open)]
     (when f
       (f:read 1))))
+
+(fn resized? []
+  (if native
+      (native.resized)
+      false))
 
 (fn write [s]
   (io.stdout:write s)
@@ -48,6 +69,8 @@
  :STDOUT_FILENO 1
  :raw-mode-enter raw-mode-enter
  :read-byte read-byte
+ :resized? resized?
+ :sleep sleep
  :stty-restore stty-restore
  :stty-save stty-save
  :term-size term-size

@@ -303,6 +303,62 @@
 (fn test-screen-alt-off []
   (faith.= "\027[?1049l" ansi.screen.alt-off))
 
+(fn test-utf8-codepoint-ascii []
+  (let [(cp cl) (ansi.utf8-codepoint "A" 1)]
+    (faith.= 65 cp)
+    (faith.= 1 cl)))
+
+(fn test-utf8-codepoint-2byte []
+  (let [(cp cl) (ansi.utf8-codepoint "é" 1)]
+    (faith.= 233 cp)
+    (faith.= 2 cl)))
+
+(fn test-utf8-codepoint-3byte []
+  (let [(cp cl) (ansi.utf8-codepoint "中" 1)]
+    (faith.= 20013 cp)
+    (faith.= 3 cl)))
+
+(fn test-utf8-codepoint-offset []
+  (let [(cp cl) (ansi.utf8-codepoint "A中" 2)]
+    (faith.= 20013 cp)
+    (faith.= 3 cl)))
+
+(fn test-codepoint-width-ascii []
+  (faith.= 1 (ansi.codepoint-width 65)))
+
+(fn test-codepoint-width-space []
+  (faith.= 1 (ansi.codepoint-width 32)))
+
+(fn test-codepoint-width-control []
+  (faith.= 0 (ansi.codepoint-width 27)))
+
+(fn test-codepoint-width-nul []
+  (faith.= 0 (ansi.codepoint-width 0)))
+
+(fn test-codepoint-width-combining []
+  (faith.= 0 (ansi.codepoint-width 768)))
+
+(fn test-codepoint-width-cjk []
+  (faith.= 2 (ansi.codepoint-width 20013)))
+
+(fn test-codepoint-width-hangul []
+  (faith.= 2 (ansi.codepoint-width 44032)))
+
+(fn test-codepoint-width-box []
+  (faith.= 1 (ansi.codepoint-width 9472)))
+
+(fn test-len-wide-single []
+  (faith.= 2 (ansi.len "中")))
+
+(fn test-len-wide-two []
+  (faith.= 4 (ansi.len "中文")))
+
+(fn test-len-wide-mixed []
+  (faith.= 3 (ansi.len "A中")))
+
+(fn test-len-wide-styled []
+  (faith.= 2 (ansi.len (ansi.style "中" ansi.bold))))
+
 {:test-bg-black test-bg-black
  :test-bg-blue test-bg-blue
  :test-bg-bright-green test-bg-bright-green
@@ -320,6 +376,14 @@
  :test-blink-off test-blink-off
  :test-bold test-bold
  :test-bold-off test-bold-off
+ :test-codepoint-width-ascii test-codepoint-width-ascii
+ :test-codepoint-width-box test-codepoint-width-box
+ :test-codepoint-width-cjk test-codepoint-width-cjk
+ :test-codepoint-width-combining test-codepoint-width-combining
+ :test-codepoint-width-control test-codepoint-width-control
+ :test-codepoint-width-hangul test-codepoint-width-hangul
+ :test-codepoint-width-nul test-codepoint-width-nul
+ :test-codepoint-width-space test-codepoint-width-space
  :test-cursor-col test-cursor-col
  :test-cursor-down test-cursor-down
  :test-cursor-hide test-cursor-hide
@@ -375,6 +439,10 @@
  :test-len-utf8-box-x4 test-len-utf8-box-x4
  :test-len-utf8-corner test-len-utf8-corner
  :test-len-utf8-corners test-len-utf8-corners
+ :test-len-wide-mixed test-len-wide-mixed
+ :test-len-wide-single test-len-wide-single
+ :test-len-wide-styled test-len-wide-styled
+ :test-len-wide-two test-len-wide-two
  :test-reset test-reset
  :test-reverse test-reverse
  :test-reverse-off test-reverse-off
@@ -402,4 +470,8 @@
  :test-style-starts-with-attr test-style-starts-with-attr
  :test-style-stripped-eq test-style-stripped-eq
  :test-underline test-underline
- :test-underline-off test-underline-off}
+ :test-underline-off test-underline-off
+ :test-utf8-codepoint-2byte test-utf8-codepoint-2byte
+ :test-utf8-codepoint-3byte test-utf8-codepoint-3byte
+ :test-utf8-codepoint-ascii test-utf8-codepoint-ascii
+ :test-utf8-codepoint-offset test-utf8-codepoint-offset}
