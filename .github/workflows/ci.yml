@@ -13,7 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Lua 5.5
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libreadline-dev
+
+      - name: Build and install Lua 5.5
         run: |
           curl -fsSL https://www.lua.org/ftp/lua-5.5.0.tar.gz | tar xz
           cd lua-5.5.0
@@ -25,7 +28,7 @@ jobs:
         run: |
           curl -fsSL https://luarocks.org/releases/luarocks-3.11.1.tar.gz | tar xz
           cd luarocks-3.11.1
-          ./configure --with-lua-bin=/usr/local/bin
+          ./configure --with-lua=/usr/local --lua-version=5.5
           make
           sudo make install
 
