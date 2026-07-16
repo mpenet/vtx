@@ -350,7 +350,7 @@ Single-line text editor. Returns the entered string or `nil`.
 | `:prompt-fg` | cyan | Prompt color |
 | `:cursor-fg` | green | Cursor highlight color |
 | `:history` | `[]` | List of previous inputs; navigate with ctrl-p/ctrl-n |
-| `:complete` | `nil` | `(fn [buf] [...])` — called on tab; single result replaces buffer |
+| `:complete` | `nil` | `(fn [buf] [...])` — called on each change; first prefix match shown as dim ghost text; tab accepts ghost or completes |
 | `:on-change` | `nil` | `(fn [buf] ...)` — called after every buffer change |
 
 **Keys**
@@ -444,7 +444,7 @@ Multi-line text editor. Returns the text string or `nil`.
 | `:cursor-fg` | green | Cursor color |
 | `:on-change` | `nil` | `(fn [content] ...)` called after every change |
 
-**Keys:** all `input` keys, plus ↑/↓ between lines, enter inserts newline, ctrl-d submits.
+**Keys:** all `input` keys, plus ↑/↓ between lines, enter inserts newline, ctrl-d delete forward, C-c C-c submit, C-q abort.
 
 ---
 
