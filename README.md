@@ -1,9 +1,9 @@
-# tiki
+# irx
 
 Terminal UI widgets for [Fennel](https://fennel-lang.org/), inspired by [gum](https://github.com/charmbracelet/gum).  
 Targets PUC Lua 5.5, no C extensions required.
 
-[![CI](https://github.com/mpenet/tiki/actions/workflows/ci.yml/badge.svg)](https://github.com/mpenet/tiki/actions/workflows/ci.yml)
+[![CI](https://github.com/mpenet/irx/actions/workflows/ci.yml/badge.svg)](https://github.com/mpenet/irx/actions/workflows/ci.yml)
 
 ---
 
@@ -13,52 +13,52 @@ Targets PUC Lua 5.5, no C extensions required.
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Style & Layout](#style--layout)
-  - [`style`](#tikistyle-text-opts)
-  - [`separator`](#tikiseparator-opts)
-  - [`hbox`](#tikihbox-items-opts)
-  - [`vbox`](#tikivbox-items-opts)
-  - [`place`](#tikiplace-content-opts)
-  - [`key-help`](#tikikey-help-bindings-opts)
-  - [`width-of` / `height-of`](#tikiwidth-of-text--tikiheight-of-text)
-  - [`merge-style`](#tikimerge-style-base-extra)
+  - [`style`](#irxstyle-text-opts)
+  - [`separator`](#irxseparator-opts)
+  - [`hbox`](#irxhbox-items-opts)
+  - [`vbox`](#irxvbox-items-opts)
+  - [`place`](#irxplace-content-opts)
+  - [`key-help`](#irxkey-help-bindings-opts)
+  - [`width-of` / `height-of`](#irxwidth-of-text--irxheight-of-text)
+  - [`merge-style`](#irxmerge-style-base-extra)
 - [Data Display](#data-display)
-  - [`gauge`](#tikigauge-value-total-opts)
-  - [`sparkline`](#tikisparkline-data-opts)
+  - [`gauge`](#irxgauge-value-total-opts)
+  - [`sparkline`](#irxsparkline-data-opts)
   - [Gradient utilities](#gradient-utilities)
 - [Text Input](#text-input)
-  - [`input`](#tikiinput-opts)
-  - [`num-input`](#tikinum-input-opts)
-  - [`password`](#tikipassword-opts)
-  - [`write`](#tikiwrite-opts)
-  - [`slider`](#tikislider-opts)
-  - [`autocomplete`](#tikiautocomplete-items-opts)
+  - [`input`](#irxinput-opts)
+  - [`num-input`](#irxnum-input-opts)
+  - [`password`](#irxpassword-opts)
+  - [`write`](#irxwrite-opts)
+  - [`slider`](#irxslider-opts)
+  - [`autocomplete`](#irxautocomplete-items-opts)
 - [Selection](#selection)
-  - [`choose`](#tikichoose-items-opts)
-  - [`checklist`](#tikichecklist-items-opts)
-  - [`radio`](#tikiradio-items-opts)
-  - [`filter`](#tikifilter-items-opts)
+  - [`choose`](#irxchoose-items-opts)
+  - [`checklist`](#irxchecklist-items-opts)
+  - [`radio`](#irxradio-items-opts)
+  - [`filter`](#irxfilter-items-opts)
 - [Prompts & Forms](#prompts--forms)
-  - [`confirm`](#tikiconfirm-prompt-opts)
-  - [`dialog`](#tikidialog-message-buttons-opts)
-  - [`toast`](#tikitoast-message-opts)
-  - [`form`](#tikiform-fields-opts)
-  - [`multi-form`](#tikimulti-form-fields-opts)
-  - [`date-picker`](#tikidate-picker-opts)
+  - [`confirm`](#irxconfirm-prompt-opts)
+  - [`dialog`](#irxdialog-message-buttons-opts)
+  - [`toast`](#irxtoast-message-opts)
+  - [`form`](#irxform-fields-opts)
+  - [`multi-form`](#irxmulti-form-fields-opts)
+  - [`date-picker`](#irxdate-picker-opts)
 - [Navigation](#navigation)
-  - [`tabs`](#tikitabs-tab-list-opts)
-  - [`tree`](#tikitree-nodes-opts)
-  - [`file-picker`](#tikifile-picker-opts)
-  - [`pager`](#tikipager-text-opts)
-  - [`viewport`](#tikiviewport-content-opts)
+  - [`tabs`](#irxtabs-tab-list-opts)
+  - [`tree`](#irxtree-nodes-opts)
+  - [`file-picker`](#irxfile-picker-opts)
+  - [`pager`](#irxpager-text-opts)
+  - [`viewport`](#irxviewport-content-opts)
 - [Progress & Async](#progress--async)
-  - [`spin`](#tikispin-f-opts)
-  - [`multi-spin`](#tikimulti-spin-tasks-opts)
-  - [`progress`](#tikiprogress-f-opts)
-  - [`multi-progress`](#tikimulti-progress-tasks-opts)
+  - [`spin`](#irxspin-f-opts)
+  - [`multi-spin`](#irxmulti-spin-tasks-opts)
+  - [`progress`](#irxprogress-f-opts)
+  - [`multi-progress`](#irxmulti-progress-tasks-opts)
 - [Table](#table)
-  - [`tbl`](#tikitbl-headers-rows-opts)
+  - [`tbl`](#irxtbl-headers-rows-opts)
 - [Utilities](#utilities)
-  - [`wrap`](#tikiwrap-text-width)
+  - [`wrap`](#irxwrap-text-width)
   - [Clipboard](#clipboard)
   - [Fuzzy matching](#fuzzy-matching)
 - [Themes](#themes)
@@ -76,7 +76,7 @@ Targets PUC Lua 5.5, no C extensions required.
 
 ## Installation
 
-Clone the repo and add `fnl/` to your Fennel path, or copy the `fnl/tiki/` tree into your project.
+Clone the repo and add `fnl/` to your Fennel path, or copy the `fnl/irx/` tree into your project.
 
 ```makefile
 FENNEL_FLAGS = --add-fennel-path "fnl/?.fnl" --add-fennel-path "fnl/?/init.fnl"
@@ -85,17 +85,17 @@ FENNEL_FLAGS = --add-fennel-path "fnl/?.fnl" --add-fennel-path "fnl/?/init.fnl"
 Then require the top-level module or individual widgets:
 
 ```fennel
-(local tiki (require :tiki))                        ; everything
-(local {: input} (require :tiki.widget.input))      ; just input
+(local irx (require :irx))                        ; everything
+(local {: input} (require :irx.widget.input))      ; just input
 ```
 
 ## Quick start
 
 ```fennel
-(local tiki (require :tiki))
+(local irx (require :irx))
 
-(let [name (tiki.input {:prompt "Name: "})
-      ok   (tiki.confirm "Continue?")]
+(let [name (irx.input {:prompt "Name: "})
+      ok   (irx.confirm "Continue?")]
   (when (and name ok)
     (print (.. "Hello, " name "!"))))
 ```
@@ -115,14 +115,14 @@ Colors default to the active theme; pass explicit values to override.
 
 ![style demo](docs/gif/01-style.gif)
 
-### `tiki.style text opts`
+### `irx.style text opts`
 
 Non-interactive. Renders styled/boxed text and returns the result string.
 
 ```fennel
-(print (tiki.style "Hello!" {:border  "rounded"
+(print (irx.style "Hello!" {:border  "rounded"
                              :padding 1
-                             :fg      tiki.ansi.fg.green
+                             :fg      irx.ansi.fg.green
                              :bold    true}))
 ```
 
@@ -140,7 +140,7 @@ Non-interactive. Renders styled/boxed text and returns the result string.
 | `:underline` | bool | Underlined text |
 | `:wrap` | bool | Word-wrap text to `:width` before boxing |
 
-Available border character sets (`tiki.borders`):
+Available border character sets (`irx.borders`):
 
 ```
 rounded  ╭─╮  double  ╔═╗  thick  ┏━┓  normal  ┌─┐  ascii  +-+
@@ -150,13 +150,13 @@ rounded  ╭─╮  double  ╔═╗  thick  ┏━┓  normal  ┌─┐  asci
 
 ---
 
-### `tiki.separator opts`
+### `irx.separator opts`
 
 Returns a horizontal rule string — a full-width line, optionally with a centered label.
 
 ```fennel
-(print (tiki.separator {:width 60}))
-(print (tiki.separator {:label " Section " :width 60 :border "double" :fg tiki.ansi.fg.cyan}))
+(print (irx.separator {:width 60}))
+(print (irx.separator {:label " Section " :width 60 :border "double" :fg irx.ansi.fg.cyan}))
 ```
 
 | Option | Default | Description |
@@ -169,15 +169,15 @@ Returns a horizontal rule string — a full-width line, optionally with a center
 
 ---
 
-### `tiki.hbox items opts`
+### `irx.hbox items opts`
 
 Arrange rendered strings side by side. Each item is a (possibly multi-line) string. Returns the composed string.
 
 ```fennel
-(print (tiki.hbox
-  [(tiki.style "Left\npanel\nthree lines" {:border "rounded" :padding 1})
-   (tiki.style "Center\npanel"            {:border "rounded" :padding 1})
-   (tiki.style "Right"                    {:border "rounded" :padding 1})]
+(print (irx.hbox
+  [(irx.style "Left\npanel\nthree lines" {:border "rounded" :padding 1})
+   (irx.style "Center\npanel"            {:border "rounded" :padding 1})
+   (irx.style "Right"                    {:border "rounded" :padding 1})]
   {:gap 1 :valign "bottom"}))
 ```
 
@@ -188,14 +188,14 @@ Arrange rendered strings side by side. Each item is a (possibly multi-line) stri
 
 ---
 
-### `tiki.vbox items opts`
+### `irx.vbox items opts`
 
 Stack rendered strings vertically. Returns the composed string.
 
 ```fennel
-(print (tiki.vbox
-  [(tiki.style "Top panel"    {:border "rounded" :width 40})
-   (tiki.style "Bottom panel" {:border "rounded" :width 40})]
+(print (irx.vbox
+  [(irx.style "Top panel"    {:border "rounded" :width 40})
+   (irx.style "Bottom panel" {:border "rounded" :width 40})]
   {:gap 1}))
 ```
 
@@ -205,12 +205,12 @@ Stack rendered strings vertically. Returns the composed string.
 
 ---
 
-### `tiki.place content opts`
+### `irx.place content opts`
 
 Position content within a fixed-size area (pad or crop to fit). Returns the composed string.
 
 ```fennel
-(print (tiki.place my-widget {:width 40 :height 10 :halign "center" :valign "middle"}))
+(print (irx.place my-widget {:width 40 :height 10 :halign "center" :valign "middle"}))
 ```
 
 | Option | Default | Description |
@@ -222,12 +222,12 @@ Position content within a fixed-size area (pad or crop to fit). Returns the comp
 
 ---
 
-### `tiki.key-help bindings opts`
+### `irx.key-help bindings opts`
 
 Renders a compact key binding hint string. Non-interactive.
 
 ```fennel
-(print (tiki.key-help [{:key "↑↓" :desc "navigate"}
+(print (irx.key-help [{:key "↑↓" :desc "navigate"}
                        {:key "space" :desc "select"}
                        {:key "enter" :desc "confirm"}
                        {:key "q" :desc "quit"}]))
@@ -241,23 +241,23 @@ Renders a compact key binding hint string. Non-interactive.
 
 ---
 
-### `tiki.width-of text` / `tiki.height-of text`
+### `irx.width-of text` / `irx.height-of text`
 
 Measure rendered strings (ANSI-escape-aware).
 
 ```fennel
-(tiki.width-of (tiki.style "Hello" {:border "rounded"}))  ; → number of columns
-(tiki.height-of (tiki.style "Hello" {:border "rounded" :padding 1}))  ; → number of lines
+(irx.width-of (irx.style "Hello" {:border "rounded"}))  ; → number of columns
+(irx.height-of (irx.style "Hello" {:border "rounded" :padding 1}))  ; → number of lines
 ```
 
 ---
 
-### `tiki.merge-style base extra`
+### `irx.merge-style base extra`
 
 Shallow-merge two option tables. `extra` keys override `base` keys.
 
 ```fennel
-(local themed (tiki.merge-style defaults overrides))
+(local themed (irx.merge-style defaults overrides))
 ```
 
 ---
@@ -266,16 +266,16 @@ Shallow-merge two option tables. `extra` keys override `base` keys.
 
 ![data demo](docs/gif/02-data.gif)
 
-### `tiki.gauge value ?total opts`
+### `irx.gauge value ?total opts`
 
 Returns a styled progress bar string. Non-interactive.
 
 ```fennel
 ;; Value as ratio 0–1
-(print (tiki.gauge 0.75))
+(print (irx.gauge 0.75))
 
 ;; Value as count out of total
-(print (tiki.gauge 45 100 {:label "RAM" :width 20 :bar-fg tiki.ansi.fg.cyan}))
+(print (irx.gauge 45 100 {:label "RAM" :width 20 :bar-fg irx.ansi.fg.cyan}))
 ```
 
 | Option | Default | Description |
@@ -289,12 +289,12 @@ Returns a styled progress bar string. Non-interactive.
 
 ---
 
-### `tiki.sparkline data opts`
+### `irx.sparkline data opts`
 
 Returns a Unicode bar-chart string for a sequence of numbers. Non-interactive.
 
 ```fennel
-(print (tiki.sparkline [2 5 1 8 3 9 4 7] {:label "CPU:" :fg tiki.ansi.fg.cyan}))
+(print (irx.sparkline [2 5 1 8 3 9 4 7] {:label "CPU:" :fg irx.ansi.fg.cyan}))
 ```
 
 | Option | Default | Description |
@@ -312,13 +312,13 @@ Apply smooth RGB color gradients to text. Non-interactive — all return styled 
 
 ```fennel
 ;; Gradient applied per character (horizontal)
-(print (tiki.gradient-text "Rainbow text" ["#ff0000" "#ffff00" "#00ff00" "#0088ff"]))
+(print (irx.gradient-text "Rainbow text" ["#ff0000" "#ffff00" "#00ff00" "#0088ff"]))
 
 ;; Gradient applied per line (vertical foreground)
-(print (tiki.gradient-lines "line 1\nline 2\nline 3" ["#8b5cf6" "#ec4899"]))
+(print (irx.gradient-lines "line 1\nline 2\nline 3" ["#8b5cf6" "#ec4899"]))
 
 ;; Gradient applied per line (vertical background)
-(print (tiki.gradient-bg-lines "line 1\nline 2\nline 3" ["#1e3a5f" "#0d1117"]))
+(print (irx.gradient-bg-lines "line 1\nline 2\nline 3" ["#1e3a5f" "#0d1117"]))
 ```
 
 All accept a list of 3- or 6-digit hex color stops. Colors are linearly interpolated across stops.
@@ -329,12 +329,12 @@ All accept a list of 3- or 6-digit hex color stops. Colors are linearly interpol
 
 ![input demo](docs/gif/03-input.gif)
 
-### `tiki.input opts`
+### `irx.input opts`
 
 Single-line text editor. Returns the entered string or `nil`.
 
 ```fennel
-(tiki.input {:prompt      "> "
+(irx.input {:prompt      "> "
              :placeholder "type here…"
              :value       "prefilled"
              :history     ["prev1" "prev2"]
@@ -375,15 +375,15 @@ Single-line text editor. Returns the entered string or `nil`.
 
 ---
 
-### `tiki.num-input opts`
+### `irx.num-input opts`
 
 Numeric input with arrow-key stepping and optional bounds. Returns a number or `nil`.
 
 ```fennel
-(tiki.num-input {:prompt "Age: " :min 0 :max 120 :step 1 :value 25})
+(irx.num-input {:prompt "Age: " :min 0 :max 120 :step 1 :value 25})
 
 ;; Decimal mode
-(tiki.num-input {:prompt "Price: $" :min 0.01 :max 99.99 :step 0.25 :decimals 2 :value 1.00})
+(irx.num-input {:prompt "Price: $" :min 0.01 :max 99.99 :step 0.25 :decimals 2 :value 1.00})
 ```
 
 | Option | Default | Description |
@@ -401,15 +401,15 @@ Numeric input with arrow-key stepping and optional bounds. Returns a number or `
 
 ---
 
-### `tiki.password opts`
+### `irx.password opts`
 
 Masked password input. Returns the string or `nil`.
 
 ```fennel
-(tiki.password {:prompt "Password: " :mask "•"})
+(irx.password {:prompt "Password: " :mask "•"})
 
 ;; Confirm mode: prompts twice, returns nil if they don't match
-(tiki.password {:confirm true :confirm-prompt "Confirm: "})
+(irx.password {:confirm true :confirm-prompt "Confirm: "})
 ```
 
 | Option | Default | Description |
@@ -423,12 +423,12 @@ Masked password input. Returns the string or `nil`.
 
 ---
 
-### `tiki.write opts`
+### `irx.write opts`
 
 Multi-line text editor. Returns the text string or `nil`.
 
 ```fennel
-(tiki.write {:header    "Notes:"
+(irx.write {:header    "Notes:"
              :height    8
              :value     "initial text"
              :on-change (fn [content] (print (# content) "chars"))})
@@ -448,12 +448,12 @@ Multi-line text editor. Returns the text string or `nil`.
 
 ---
 
-### `tiki.slider opts`
+### `irx.slider opts`
 
 Horizontal value slider. Returns a number or `nil`.
 
 ```fennel
-(tiki.slider {:prompt "Volume: " :min 0 :max 100 :step 5 :value 50})
+(irx.slider {:prompt "Volume: " :min 0 :max 100 :step 5 :value 50})
 ```
 
 | Option | Default | Description |
@@ -474,12 +474,12 @@ Horizontal value slider. Returns a number or `nil`.
 
 ---
 
-### `tiki.autocomplete items opts`
+### `irx.autocomplete items opts`
 
 Inline completion dropdown — query narrows results as you type. Returns the selected string or `nil`.
 
 ```fennel
-(tiki.autocomplete ["apple" "apricot" "banana"] {:height 5 :fuzzy false})
+(irx.autocomplete ["apple" "apricot" "banana"] {:height 5 :fuzzy false})
 ```
 
 | Option | Default | Description |
@@ -496,14 +496,14 @@ Inline completion dropdown — query narrows results as you type. Returns the se
 
 ![selection demo](docs/gif/04-selection.gif)
 
-### `tiki.choose items opts`
+### `irx.choose items opts`
 
 Pick one item from a list (or multiple in multi mode). Returns the selected item or a list in multi mode.
 
 ```fennel
-(tiki.choose ["Fennel" "Clojure" "Lua"])
-(tiki.choose items {:height 8 :multi true})
-(tiki.choose items {:search true})   ; enable / search
+(irx.choose ["Fennel" "Clojure" "Lua"])
+(irx.choose items {:height 8 :multi true})
+(irx.choose items {:search true})   ; enable / search
 ```
 
 | Option | Default | Description |
@@ -522,13 +522,13 @@ Pick one item from a list (or multiple in multi mode). Returns the selected item
 
 ---
 
-### `tiki.checklist items opts`
+### `irx.checklist items opts`
 
 List with toggle checkboxes. Returns a list of checked item strings, or `nil`.
 
 ```fennel
-(tiki.checklist ["Option A" "Option B" "Option C"])
-(tiki.checklist items {:checked [1 3] :height 8})
+(irx.checklist ["Option A" "Option B" "Option C"])
+(irx.checklist items {:checked [1 3] :height 8})
 ```
 
 | Option | Default | Description |
@@ -544,13 +544,13 @@ List with toggle checkboxes. Returns a list of checked item strings, or `nil`.
 
 ---
 
-### `tiki.radio items opts`
+### `irx.radio items opts`
 
 Single-select radio list — cursor and selected state are decoupled so you can navigate without losing selection. Returns the selected item or `nil`.
 
 ```fennel
-(tiki.radio ["Small" "Medium" "Large"])
-(tiki.radio items {:prompt "Size:" :value "Medium" :height 6})
+(irx.radio ["Small" "Medium" "Large"])
+(irx.radio items {:prompt "Size:" :value "Medium" :height 6})
 ```
 
 | Option | Default | Description |
@@ -566,16 +566,16 @@ Single-select radio list — cursor and selected state are decoupled so you can 
 
 ---
 
-### `tiki.filter items opts`
+### `irx.filter items opts`
 
 Incremental fuzzy or substring search. Returns `[item, ...]` or `nil`.
 
 ```fennel
-(tiki.filter files {:fuzzy true :height 10})
-(tiki.filter items {:multi true :prompt "search: "})
+(irx.filter files {:fuzzy true :height 10})
+(irx.filter items {:multi true :prompt "search: "})
 
 ;; Custom renderer — receives item string + matched byte positions
-(tiki.filter items {:render (fn [item positions] (.. "[" item "]"))})
+(irx.filter items {:render (fn [item positions] (.. "[" item "]"))})
 ```
 
 | Option | Default | Description |
@@ -599,13 +599,13 @@ Incremental fuzzy or substring search. Returns `[item, ...]` or `nil`.
 
 ![prompts demo](docs/gif/05-prompts.gif)
 
-### `tiki.confirm prompt opts`
+### `irx.confirm prompt opts`
 
 Yes/No prompt. Returns `true`, `false`, or `nil`.
 
 ```fennel
-(tiki.confirm "Delete file?")
-(tiki.confirm "Overwrite?" {:default false :affirmative "Yep" :negative "Nope"})
+(irx.confirm "Delete file?")
+(irx.confirm "Overwrite?" {:default false :affirmative "Yep" :negative "Nope"})
 ```
 
 | Option | Default | Description |
@@ -622,13 +622,13 @@ Yes/No prompt. Returns `true`, `false`, or `nil`.
 
 ---
 
-### `tiki.dialog message buttons opts`
+### `irx.dialog message buttons opts`
 
 Styled popup box with navigable button row. Returns the 1-based index of the selected button or `nil`.
 
 ```fennel
-(tiki.dialog "Are you sure?" ["Cancel" "Delete"])
-(tiki.dialog "Save before closing?" ["Cancel" "Discard" "Save"]
+(irx.dialog "Are you sure?" ["Cancel" "Delete"])
+(irx.dialog "Save before closing?" ["Cancel" "Discard" "Save"]
              {:border "rounded" :width 44})
 ```
 
@@ -645,15 +645,15 @@ Styled popup box with navigable button row. Returns the 1-based index of the sel
 
 ---
 
-### `tiki.toast message opts`
+### `irx.toast message opts`
 
 Timed inline notification. Displays a styled message for `:timeout` seconds then clears.
 
 ```fennel
-(tiki.toast "Build succeeded" {:level :success :timeout 2})
-(tiki.toast "Config missing"  {:level :warn})
-(tiki.toast "Connection lost" {:level :error})
-(tiki.toast "Watching files…" {:level :info})
+(irx.toast "Build succeeded" {:level :success :timeout 2})
+(irx.toast "Config missing"  {:level :warn})
+(irx.toast "Connection lost" {:level :error})
+(irx.toast "Watching files…" {:level :info})
 ```
 
 | Option | Default | Description |
@@ -663,12 +663,12 @@ Timed inline notification. Displays a styled message for `:timeout` seconds then
 
 ---
 
-### `tiki.form fields opts`
+### `irx.form fields opts`
 
 Sequential form — each field runs its own widget in sequence. Returns `{key → value}` or `nil` if any field is aborted. Fields with `:validate` are re-prompted on failure.
 
 ```fennel
-(tiki.form
+(irx.form
   [{:type     "input"
     :key      :name
     :label    "Full name"
@@ -696,14 +696,14 @@ Each field:
 
 ---
 
-### `tiki.multi-form fields opts`
+### `irx.multi-form fields opts`
 
 Single-screen form — all fields visible simultaneously, tab to move between them. Returns `{key → value}` or `nil`.
 
 Supports `"input"`, `"password"`, `"confirm"`, and `"num"` field types.
 
 ```fennel
-(tiki.multi-form
+(irx.multi-form
   [{:type "input"   :label "Username" :key :user :opts {:value "ada"}}
    {:type "num"     :label "Age"      :key :age  :opts {:value 30 :step 1}}
    {:type "confirm" :label "Admin?"   :key :admin :opts {:default false}}
@@ -721,13 +721,13 @@ Supports `"input"`, `"password"`, `"confirm"`, and `"num"` field types.
 
 ---
 
-### `tiki.date-picker opts`
+### `irx.date-picker opts`
 
 YYYY-MM-DD date selector. Returns `"YYYY-MM-DD"` or `nil`.
 
 ```fennel
-(tiki.date-picker)
-(tiki.date-picker {:value "2025-01-15"})
+(irx.date-picker)
+(irx.date-picker {:value "2025-01-15"})
 ```
 
 | Option | Default | Description |
@@ -748,14 +748,14 @@ Three segments (year/month/day) are navigated with tab/←/→. ↑/↓ adjust t
 
 ![navigation demo](docs/gif/06-navigation.gif)
 
-### `tiki.tabs tab-list opts`
+### `irx.tabs tab-list opts`
 
 Tabbed content view. Returns the 1-based index of the active tab on enter, or `nil`.
 
 ```fennel
-(tiki.tabs
+(irx.tabs
   [{:label "Overview" :content "Widget library for Fennel/Lua"}
-   {:label "Usage"    :content "(tiki.choose items)"}
+   {:label "Usage"    :content "(irx.choose items)"}
    {:label "Config"   :content "{:height 10}"}])
 ```
 
@@ -769,12 +769,12 @@ Tabbed content view. Returns the 1-based index of the active tab on enter, or `n
 
 ---
 
-### `tiki.tree nodes opts`
+### `irx.tree nodes opts`
 
 Collapsible tree navigator. Returns `node.data` if set, otherwise `node.label`, or `nil`.
 
 ```fennel
-(tiki.tree
+(irx.tree
   [{:label "src"
     :children [{:label "main.fnl" :data "src/main.fnl"}
                {:label "util.fnl" :data "src/util.fnl"}]}
@@ -798,13 +798,13 @@ Each node: `{:label string :children [...] :data any}`. Children make a node a d
 
 ---
 
-### `tiki.file-picker opts`
+### `irx.file-picker opts`
 
 Interactive filesystem browser. Returns the selected file path or `nil`.
 
 ```fennel
-(tiki.file-picker {:path "." :height 12})
-(tiki.file-picker {:dirs-only true :show-hidden true})
+(irx.file-picker {:path "." :height 12})
+(irx.file-picker {:dirs-only true :show-hidden true})
 ```
 
 | Option | Default | Description |
@@ -820,14 +820,14 @@ Interactive filesystem browser. Returns the selected file path or `nil`.
 
 ---
 
-### `tiki.pager text opts`
+### `irx.pager text opts`
 
 Scrollable text viewer with incremental search. Blocks until quit.
 
 ```fennel
-(tiki.pager long-text)
-(tiki.pager content {:height 30 :wrap true})
-(tiki.pager code {:highlight (fn [line] (syntax-color line))})
+(irx.pager long-text)
+(irx.pager content {:height 30 :wrap true})
+(irx.pager code {:highlight (fn [line] (syntax-color line))})
 ```
 
 | Option | Default | Description |
@@ -841,13 +841,13 @@ Scrollable text viewer with incremental search. Blocks until quit.
 
 ---
 
-### `tiki.viewport content opts`
+### `irx.viewport content opts`
 
 Inline scrollable viewer — like `pager` but without search or alternate screen. Returns `nil`.
 
 ```fennel
-(tiki.viewport long-text)
-(tiki.viewport content {:height 15})
+(irx.viewport long-text)
+(irx.viewport content {:height 15})
 ```
 
 | Option | Default | Description |
@@ -862,12 +862,12 @@ Inline scrollable viewer — like `pager` but without search or alternate screen
 
 ![progress demo](docs/gif/07-progress.gif)
 
-### `tiki.spin f opts`
+### `irx.spin f opts`
 
 Animated spinner while a function runs. The function runs as a coroutine; yield a string to update the title mid-run. Returns the function's return value.
 
 ```fennel
-(tiki.spin
+(irx.spin
   (fn []
     (coroutine.yield "Step 1…")
     (step-1)
@@ -888,12 +888,12 @@ Available spinners: `"dots"` `"dots2"` `"line"` `"bounce"` `"arrow"`.
 
 ---
 
-### `tiki.multi-spin tasks opts`
+### `irx.multi-spin tasks opts`
 
 Run multiple tasks in parallel, each with its own spinner line. Returns a table of results indexed by task order.
 
 ```fennel
-(tiki.multi-spin
+(irx.multi-spin
   [{:f (fn [] (do-work) "ok")   :title "Compiling"}
    {:f (fn [] (run-tests) "ok") :title "Testing"}
    {:f (fn [] (bundle) "ok")    :title "Bundling"}])
@@ -903,13 +903,13 @@ Tasks run as coroutines — yield to allow other tasks to advance. A green `✓`
 
 ---
 
-### `tiki.progress f opts`
+### `irx.progress f opts`
 
 Determinate or indeterminate progress bar. Calls `f` with an `update` function.
 
 ```fennel
 ;; Determinate
-(tiki.progress
+(irx.progress
   (fn [update]
     (for [i 1 100]
       (update i 100)
@@ -917,12 +917,12 @@ Determinate or indeterminate progress bar. Calls `f` with an `update` function.
   {:title "Processing…" :width 40})
 
 ;; Indeterminate
-(tiki.progress
+(irx.progress
   (fn [update] (while (not done?) (update) (do-chunk)))
   {:indeterminate true :title "Working…"})
 
 ;; With ETA and transfer rate
-(tiki.progress
+(irx.progress
   (fn [update]
     (for [i 1 total]
       (update (* i chunk-size) total-bytes)
@@ -945,12 +945,12 @@ Determinate or indeterminate progress bar. Calls `f` with an `update` function.
 
 ---
 
-### `tiki.multi-progress tasks opts`
+### `irx.multi-progress tasks opts`
 
 Stacked progress bars for parallel tasks. Blocks until all complete.
 
 ```fennel
-(tiki.multi-progress
+(irx.multi-progress
   [{:f     (fn [update] (for [i 1 100] (update i 100) (process i)))
     :title "Compiling"}
    {:f     (fn [update] (for [i 1 50]  (update i 50)  (run-test i)))
@@ -965,12 +965,12 @@ Each task is `{:f fn :title string}` where `f` receives `(update value total)`. 
 
 ![table demo](docs/gif/08-table.gif)
 
-### `tiki.tbl headers rows opts`
+### `irx.tbl headers rows opts`
 
 Scrollable table with optional row selection and column sort. Returns the selected row (as an array) or `nil`.
 
 ```fennel
-(tiki.tbl
+(irx.tbl
   ["Name" "Age" "City"]
   [["Alice" "30" "NYC"]
    ["Bob"   "25" "LA"]]
@@ -995,12 +995,12 @@ Column sort is numeric-aware: columns where all visible values parse as numbers 
 
 ## Utilities
 
-### `tiki.wrap text width`
+### `irx.wrap text width`
 
 Word-wrap text to a maximum column width. Returns the wrapped string.
 
 ```fennel
-(print (tiki.wrap "A very long sentence that needs wrapping." 40))
+(print (irx.wrap "A very long sentence that needs wrapping." 40))
 ```
 
 ---
@@ -1008,8 +1008,8 @@ Word-wrap text to a maximum column width. Returns the wrapped string.
 ### Clipboard
 
 ```fennel
-(tiki.clipboard-copy "text to copy")
-(local text (tiki.clipboard-paste))   ; returns string or nil
+(irx.clipboard-copy "text to copy")
+(local text (irx.clipboard-paste))   ; returns string or nil
 ```
 
 Uses `pbcopy`/`pbpaste` on macOS, `xclip` or `xsel` on Linux. No error is raised if none are available.
@@ -1022,11 +1022,11 @@ The filter widget's matching functions are also exported:
 
 ```fennel
 ;; Returns a list of matched byte positions, or nil
-(tiki.fuzzy-match "hello world" "hlo")   ; → {1 3 5}
+(irx.fuzzy-match "hello world" "hlo")   ; → {1 3 5}
 
 ;; Filter a list of strings
 ;; Returns [{:i orig-index :item string :positions [...]}]
-(local filter-m (require :tiki.widget.filter))
+(local filter-m (require :irx.widget.filter))
 (filter-m.filter-items items query fuzzy?)
 ```
 
@@ -1037,13 +1037,13 @@ The filter widget's matching functions are also exported:
 Apply a built-in theme or supply a custom color table. Themes control the default colors of all interactive widgets.
 
 ```fennel
-(tiki.set-theme "nord")      ; built-in: default, nord, dracula, gruvbox, light
-(tiki.set-theme {})          ; reset to no theme
-(tiki.set-theme              ; custom
-  {:cursor-fg   (tiki.ansi.fg256 214)
-   :prompt-fg   (tiki.ansi.fg256 208)
-   :selected-fg (tiki.ansi.fg256 142)
-   :match-fg    (tiki.ansi.fg256 229)})
+(irx.set-theme "nord")      ; built-in: default, nord, dracula, gruvbox, light
+(irx.set-theme {})          ; reset to no theme
+(irx.set-theme              ; custom
+  {:cursor-fg   (irx.ansi.fg256 214)
+   :prompt-fg   (irx.ansi.fg256 208)
+   :selected-fg (irx.ansi.fg256 142)
+   :match-fg    (irx.ansi.fg256 229)})
 ```
 
 Theme keys (all optional):
@@ -1068,10 +1068,10 @@ Per-widget options always take precedence over the theme.
 
 ## ANSI utilities
 
-`tiki.ansi` exposes all escape sequences directly.
+`irx.ansi` exposes all escape sequences directly.
 
 ```fennel
-(local ansi tiki.ansi)
+(local ansi irx.ansi)
 
 ;; Attributes
 ansi.bold  ansi.dim  ansi.italic  ansi.underline
@@ -1122,7 +1122,7 @@ ansi.screen.alt-on       ansi.screen.alt-off
 The pager responds to terminal resize automatically. Other widgets re-query the terminal size on each render. For resize support, build the optional native extension:
 
 ```sh
-make compile-native   # compiles src/tiki_posix_native.c → tiki/posix_native.so
+make compile-native   # compiles src/irx_posix_native.c → irx/posix_native.so
 ```
 
 The extension is loaded at runtime with a graceful fallback. Without it, resize is detected on the next key event via `stty size`.
@@ -1141,9 +1141,9 @@ The extension is loaded at runtime with a graceful fallback. Without it, resize 
 make test            # run test suite (requires fennel + faith vendored in fnl/)
 make demo            # run the interactive demo
 make compile         # compile all .fnl → lua/
-make compile-native  # build SIGWINCH C extension → tiki/posix_native.so
+make compile-native  # build SIGWINCH C extension → irx/posix_native.so
 make repl            # start a Fennel REPL with the correct path
 bash docs/record.sh  # regenerate showcase GIFs (requires asciinema + agg)
 ```
 
-Tests live in `fnl/tiki/test/`, one file per module. The test runner is `test.fnl` using [faith](https://git.sr.ht/~technomancy/faith) (vendored at `fnl/faith.fnl`).
+Tests live in `fnl/irx/test/`, one file per module. The test runner is `test.fnl` using [faith](https://git.sr.ht/~technomancy/faith) (vendored at `fnl/faith.fnl`).
