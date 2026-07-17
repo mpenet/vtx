@@ -4,14 +4,15 @@
 
 (local faith (require "faith"))
 
-(local opts
-  {:active-fg ansi.fg.cyan
-   :inactive-fg ansi.dim})
+(local opts {:active-fg ansi.fg.cyan :inactive-fg ansi.dim})
 
-(local tab-list
-  [{:content "content one" :label "Tab1"}
-   {:content "content two\nline two" :label "Tab2"}
-   {:content "content three" :label "Tab3"}])
+(local tab-list [{:content "content one" :label "Tab1"}
+                 {:content
+                  "content two
+line two"
+                  :label
+                  "Tab2"}
+                 {:content "content three" :label "Tab3"}])
 
 (fn test-tab-bar-contains-labels []
   (let [bar (ansi.strip (tabs-m.render-tab-bar tab-list 1 opts))]
@@ -27,12 +28,14 @@
 
 (fn test-tab-bar-inactive-no-box []
   (let [bar (ansi.strip (tabs-m.render-tab-bar tab-list 1 opts))]
-    (faith.= nil (: bar "find" "│ Tab2 │" 1 true))))
+    (faith.is (: bar "find" "│ Tab2 │" 1 true))
+    (faith.is (: bar "find" "┴" 1 true))))
 
 (fn test-tab-bar-active-index-2 []
   (let [bar (ansi.strip (tabs-m.render-tab-bar tab-list 2 opts))]
     (faith.is (: bar "find" "│ Tab2 │" 1 true))
-    (faith.= nil (: bar "find" "│ Tab1 │" 1 true))))
+    (faith.is (: bar "find" "│ Tab1 │" 1 true))
+    (faith.is (: bar "find" "╯" 1 true))))
 
 (fn test-tab-bar-has-separator []
   (let [bar (ansi.strip (tabs-m.render-tab-bar tab-list 1 opts))]
