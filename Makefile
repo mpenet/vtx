@@ -17,38 +17,38 @@ repl:
 
 compile:
 	mkdir -p lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/ansi.fnl   > lua/ansi.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/posix.fnl  > lua/posix.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/term.fnl   > lua/term.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/util.fnl   > lua/util.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/theme.fnl  > lua/theme.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/style.fnl   > lua/style.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/confirm.fnl > lua/confirm.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/input.fnl   > lua/input.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/write.fnl   > lua/write.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/choose.fnl  > lua/choose.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/filter.fnl  > lua/filter.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/spin.fnl     > lua/spin.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/password.fnl > lua/password.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/progress.fnl > lua/progress.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/pager.fnl    > lua/pager.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/form.fnl     > lua/form.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/gradient.fnl              > lua/gradient.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/autocomplete.fnl  > lua/autocomplete.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/file-picker.fnl   > lua/file-picker.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/key-help.fnl      > lua/key-help.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/radio.fnl         > lua/radio.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/slider.fnl        > lua/slider.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/tabs.fnl          > lua/tabs.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/tree.fnl          > lua/tree.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/date-picker.fnl   > lua/date-picker.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/dialog.fnl        > lua/dialog.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/gauge.fnl         > lua/gauge.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/multi-form.fnl    > lua/multi-form.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/sparkline.fnl     > lua/sparkline.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/viewport.fnl      > lua/viewport.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx/widget/table.fnl    > lua/table.lua
-	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/irx.fnl > lua/irx.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/ansi.fnl   > lua/ansi.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/posix.fnl  > lua/posix.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/term.fnl   > lua/term.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/util.fnl   > lua/util.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/theme.fnl  > lua/theme.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/style.fnl   > lua/style.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/confirm.fnl > lua/confirm.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/input.fnl   > lua/input.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/write.fnl   > lua/write.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/choose.fnl  > lua/choose.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/filter.fnl  > lua/filter.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/spin.fnl     > lua/spin.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/password.fnl > lua/password.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/progress.fnl > lua/progress.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/pager.fnl    > lua/pager.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/form.fnl     > lua/form.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/gradient.fnl              > lua/gradient.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/autocomplete.fnl  > lua/autocomplete.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/file-picker.fnl   > lua/file-picker.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/key-help.fnl      > lua/key-help.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/radio.fnl         > lua/radio.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/slider.fnl        > lua/slider.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/tabs.fnl          > lua/tabs.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/tree.fnl          > lua/tree.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/date-picker.fnl   > lua/date-picker.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/dialog.fnl        > lua/dialog.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/gauge.fnl         > lua/gauge.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/multi-form.fnl    > lua/multi-form.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/sparkline.fnl     > lua/sparkline.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/viewport.fnl      > lua/viewport.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx/widget/table.fnl    > lua/table.lua
+	$(FENNEL) $(FENNEL_FLAGS) --compile fnl/vtx.fnl > lua/vtx.lua
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
@@ -58,8 +58,8 @@ else
 endif
 
 compile-native:
-	mkdir -p irx
-	$(CC) $(SHARED_FLAGS) -fPIC $(LUA_INCLUDE) -o irx/posix_native.so src/irx_posix_native.c
+	mkdir -p vtx
+	$(CC) $(SHARED_FLAGS) -fPIC $(LUA_INCLUDE) -o vtx/posix_native.so src/vtx_posix_native.c
 
 clean:
-	rm -rf lua irx/posix_native.so
+	rm -rf lua vtx/posix_native.so

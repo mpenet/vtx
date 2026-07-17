@@ -1,9 +1,9 @@
-# irx
+# vtx
 
 Terminal UI widgets for [Fennel](https://fennel-lang.org/), inspired by [gum](https://github.com/charmbracelet/gum).  
 Targets PUC Lua 5.5, no C extensions required.
 
-[![CI](https://github.com/mpenet/irx/actions/workflows/ci.yml/badge.svg)](https://github.com/mpenet/irx/actions/workflows/ci.yml)
+[![CI](https://github.com/mpenet/vtx/actions/workflows/ci.yml/badge.svg)](https://github.com/mpenet/vtx/actions/workflows/ci.yml)
 
 ---
 
@@ -13,52 +13,52 @@ Targets PUC Lua 5.5, no C extensions required.
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Style & Layout](#style--layout)
-  - [`style`](#irxstyle-text-opts)
-  - [`separator`](#irxseparator-opts)
-  - [`hbox`](#irxhbox-items-opts)
-  - [`vbox`](#irxvbox-items-opts)
-  - [`place`](#irxplace-content-opts)
-  - [`key-help`](#irxkey-help-bindings-opts)
-  - [`width-of` / `height-of`](#irxwidth-of-text--irxheight-of-text)
-  - [`merge-style`](#irxmerge-style-base-extra)
+  - [`style`](#vtxstyle-text-opts)
+  - [`separator`](#vtxseparator-opts)
+  - [`hbox`](#vtxhbox-items-opts)
+  - [`vbox`](#vtxvbox-items-opts)
+  - [`place`](#vtxplace-content-opts)
+  - [`key-help`](#vtxkey-help-bindings-opts)
+  - [`width-of` / `height-of`](#vtxwidth-of-text--vtxheight-of-text)
+  - [`merge-style`](#vtxmerge-style-base-extra)
 - [Data Display](#data-display)
-  - [`gauge`](#irxgauge-value-total-opts)
-  - [`sparkline`](#irxsparkline-data-opts)
+  - [`gauge`](#vtxgauge-value-total-opts)
+  - [`sparkline`](#vtxsparkline-data-opts)
   - [Gradient utilities](#gradient-utilities)
 - [Text Input](#text-input)
-  - [`input`](#irxinput-opts)
-  - [`num-input`](#irxnum-input-opts)
-  - [`password`](#irxpassword-opts)
-  - [`write`](#irxwrite-opts)
-  - [`slider`](#irxslider-opts)
-  - [`autocomplete`](#irxautocomplete-items-opts)
+  - [`input`](#vtxinput-opts)
+  - [`num-input`](#vtxnum-input-opts)
+  - [`password`](#vtxpassword-opts)
+  - [`write`](#vtxwrite-opts)
+  - [`slider`](#vtxslider-opts)
+  - [`autocomplete`](#vtxautocomplete-items-opts)
 - [Selection](#selection)
-  - [`choose`](#irxchoose-items-opts)
-  - [`checklist`](#irxchecklist-items-opts)
-  - [`radio`](#irxradio-items-opts)
-  - [`filter`](#irxfilter-items-opts)
+  - [`choose`](#vtxchoose-items-opts)
+  - [`checklist`](#vtxchecklist-items-opts)
+  - [`radio`](#vtxradio-items-opts)
+  - [`filter`](#vtxfilter-items-opts)
 - [Prompts & Forms](#prompts--forms)
-  - [`confirm`](#irxconfirm-prompt-opts)
-  - [`dialog`](#irxdialog-message-buttons-opts)
-  - [`toast`](#irxtoast-message-opts)
-  - [`form`](#irxform-fields-opts)
-  - [`multi-form`](#irxmulti-form-fields-opts)
-  - [`date-picker`](#irxdate-picker-opts)
+  - [`confirm`](#vtxconfirm-prompt-opts)
+  - [`dialog`](#vtxdialog-message-buttons-opts)
+  - [`toast`](#vtxtoast-message-opts)
+  - [`form`](#vtxform-fields-opts)
+  - [`multi-form`](#vtxmulti-form-fields-opts)
+  - [`date-picker`](#vtxdate-picker-opts)
 - [Navigation](#navigation)
-  - [`tabs`](#irxtabs-tab-list-opts)
-  - [`tree`](#irxtree-nodes-opts)
-  - [`file-picker`](#irxfile-picker-opts)
-  - [`pager`](#irxpager-text-opts)
-  - [`viewport`](#irxviewport-content-opts)
+  - [`tabs`](#vtxtabs-tab-list-opts)
+  - [`tree`](#vtxtree-nodes-opts)
+  - [`file-picker`](#vtxfile-picker-opts)
+  - [`pager`](#vtxpager-text-opts)
+  - [`viewport`](#vtxviewport-content-opts)
 - [Progress & Async](#progress--async)
-  - [`spin`](#irxspin-f-opts)
-  - [`multi-spin`](#irxmulti-spin-tasks-opts)
-  - [`progress`](#irxprogress-f-opts)
-  - [`multi-progress`](#irxmulti-progress-tasks-opts)
+  - [`spin`](#vtxspin-f-opts)
+  - [`multi-spin`](#vtxmulti-spin-tasks-opts)
+  - [`progress`](#vtxprogress-f-opts)
+  - [`multi-progress`](#vtxmulti-progress-tasks-opts)
 - [Table](#table)
-  - [`tbl`](#irxtbl-headers-rows-opts)
+  - [`tbl`](#vtxtbl-headers-rows-opts)
 - [Utilities](#utilities)
-  - [`wrap`](#irxwrap-text-width)
+  - [`wrap`](#vtxwrap-text-width)
   - [Clipboard](#clipboard)
   - [Fuzzy matching](#fuzzy-matching)
 - [Themes](#themes)
@@ -76,7 +76,7 @@ Targets PUC Lua 5.5, no C extensions required.
 
 ## Installation
 
-Clone the repo and add `fnl/` to your Fennel path, or copy the `fnl/irx/` tree into your project.
+Clone the repo and add `fnl/` to your Fennel path, or copy the `fnl/vtx/` tree into your project.
 
 ```makefile
 FENNEL_FLAGS = --add-fennel-path "fnl/?.fnl" --add-fennel-path "fnl/?/init.fnl"
@@ -85,17 +85,17 @@ FENNEL_FLAGS = --add-fennel-path "fnl/?.fnl" --add-fennel-path "fnl/?/init.fnl"
 Then require the top-level module or individual widgets:
 
 ```fennel
-(local irx (require :irx))                        ; everything
-(local {: input} (require :irx.widget.input))      ; just input
+(local vtx (require :vtx))                        ; everything
+(local {: input} (require :vtx.widget.input))      ; just input
 ```
 
 ## Quick start
 
 ```fennel
-(local irx (require :irx))
+(local vtx (require :vtx))
 
-(let [name (irx.input {:prompt "Name: "})
-      ok   (irx.confirm "Continue?")]
+(let [name (vtx.input {:prompt "Name: "})
+      ok   (vtx.confirm "Continue?")]
   (when (and name ok)
     (print (.. "Hello, " name "!"))))
 ```
@@ -115,14 +115,14 @@ Colors default to the active theme; pass explicit values to override.
 
 ![style demo](docs/gif/01-style.gif)
 
-### `irx.style text opts`
+### `vtx.style text opts`
 
 Non-interactive. Renders styled/boxed text and returns the result string.
 
 ```fennel
-(print (irx.style "Hello!" {:border  "rounded"
+(print (vtx.style "Hello!" {:border  "rounded"
                              :padding 1
-                             :fg      irx.ansi.fg.green
+                             :fg      vtx.ansi.fg.green
                              :bold    true}))
 ```
 
@@ -140,7 +140,7 @@ Non-interactive. Renders styled/boxed text and returns the result string.
 | `:underline` | bool | Underlined text |
 | `:wrap` | bool | Word-wrap text to `:width` before boxing |
 
-Available border character sets (`irx.borders`):
+Available border character sets (`vtx.borders`):
 
 ```
 rounded  ╭─╮  double  ╔═╗  thick  ┏━┓  normal  ┌─┐  ascii  +-+
@@ -150,13 +150,13 @@ rounded  ╭─╮  double  ╔═╗  thick  ┏━┓  normal  ┌─┐  asci
 
 ---
 
-### `irx.separator opts`
+### `vtx.separator opts`
 
 Returns a horizontal rule string — a full-width line, optionally with a centered label.
 
 ```fennel
-(print (irx.separator {:width 60}))
-(print (irx.separator {:label " Section " :width 60 :border "double" :fg irx.ansi.fg.cyan}))
+(print (vtx.separator {:width 60}))
+(print (vtx.separator {:label " Section " :width 60 :border "double" :fg vtx.ansi.fg.cyan}))
 ```
 
 | Option | Default | Description |
@@ -169,15 +169,15 @@ Returns a horizontal rule string — a full-width line, optionally with a center
 
 ---
 
-### `irx.hbox items opts`
+### `vtx.hbox items opts`
 
 Arrange rendered strings side by side. Each item is a (possibly multi-line) string. Returns the composed string.
 
 ```fennel
-(print (irx.hbox
-  [(irx.style "Left\npanel\nthree lines" {:border "rounded" :padding 1})
-   (irx.style "Center\npanel"            {:border "rounded" :padding 1})
-   (irx.style "Right"                    {:border "rounded" :padding 1})]
+(print (vtx.hbox
+  [(vtx.style "Left\npanel\nthree lines" {:border "rounded" :padding 1})
+   (vtx.style "Center\npanel"            {:border "rounded" :padding 1})
+   (vtx.style "Right"                    {:border "rounded" :padding 1})]
   {:gap 1 :valign "bottom"}))
 ```
 
@@ -188,14 +188,14 @@ Arrange rendered strings side by side. Each item is a (possibly multi-line) stri
 
 ---
 
-### `irx.vbox items opts`
+### `vtx.vbox items opts`
 
 Stack rendered strings vertically. Returns the composed string.
 
 ```fennel
-(print (irx.vbox
-  [(irx.style "Top panel"    {:border "rounded" :width 40})
-   (irx.style "Bottom panel" {:border "rounded" :width 40})]
+(print (vtx.vbox
+  [(vtx.style "Top panel"    {:border "rounded" :width 40})
+   (vtx.style "Bottom panel" {:border "rounded" :width 40})]
   {:gap 1}))
 ```
 
@@ -205,12 +205,12 @@ Stack rendered strings vertically. Returns the composed string.
 
 ---
 
-### `irx.place content opts`
+### `vtx.place content opts`
 
 Position content within a fixed-size area (pad or crop to fit). Returns the composed string.
 
 ```fennel
-(print (irx.place my-widget {:width 40 :height 10 :halign "center" :valign "middle"}))
+(print (vtx.place my-widget {:width 40 :height 10 :halign "center" :valign "middle"}))
 ```
 
 | Option | Default | Description |
@@ -222,12 +222,12 @@ Position content within a fixed-size area (pad or crop to fit). Returns the comp
 
 ---
 
-### `irx.key-help bindings opts`
+### `vtx.key-help bindings opts`
 
 Renders a compact key binding hint string. Non-interactive.
 
 ```fennel
-(print (irx.key-help [{:key "↑↓" :desc "navigate"}
+(print (vtx.key-help [{:key "↑↓" :desc "navigate"}
                        {:key "space" :desc "select"}
                        {:key "enter" :desc "confirm"}
                        {:key "q" :desc "quit"}]))
@@ -241,23 +241,23 @@ Renders a compact key binding hint string. Non-interactive.
 
 ---
 
-### `irx.width-of text` / `irx.height-of text`
+### `vtx.width-of text` / `vtx.height-of text`
 
 Measure rendered strings (ANSI-escape-aware).
 
 ```fennel
-(irx.width-of (irx.style "Hello" {:border "rounded"}))  ; → number of columns
-(irx.height-of (irx.style "Hello" {:border "rounded" :padding 1}))  ; → number of lines
+(vtx.width-of (vtx.style "Hello" {:border "rounded"}))  ; → number of columns
+(vtx.height-of (vtx.style "Hello" {:border "rounded" :padding 1}))  ; → number of lines
 ```
 
 ---
 
-### `irx.merge-style base extra`
+### `vtx.merge-style base extra`
 
 Shallow-merge two option tables. `extra` keys override `base` keys.
 
 ```fennel
-(local themed (irx.merge-style defaults overrides))
+(local themed (vtx.merge-style defaults overrides))
 ```
 
 ---
@@ -266,16 +266,16 @@ Shallow-merge two option tables. `extra` keys override `base` keys.
 
 ![data demo](docs/gif/02-data.gif)
 
-### `irx.gauge value ?total opts`
+### `vtx.gauge value ?total opts`
 
 Returns a styled progress bar string. Non-interactive.
 
 ```fennel
 ;; Value as ratio 0–1
-(print (irx.gauge 0.75))
+(print (vtx.gauge 0.75))
 
 ;; Value as count out of total
-(print (irx.gauge 45 100 {:label "RAM" :width 20 :bar-fg irx.ansi.fg.cyan}))
+(print (vtx.gauge 45 100 {:label "RAM" :width 20 :bar-fg vtx.ansi.fg.cyan}))
 ```
 
 | Option | Default | Description |
@@ -289,12 +289,12 @@ Returns a styled progress bar string. Non-interactive.
 
 ---
 
-### `irx.sparkline data opts`
+### `vtx.sparkline data opts`
 
 Returns a Unicode bar-chart string for a sequence of numbers. Non-interactive.
 
 ```fennel
-(print (irx.sparkline [2 5 1 8 3 9 4 7] {:label "CPU:" :fg irx.ansi.fg.cyan}))
+(print (vtx.sparkline [2 5 1 8 3 9 4 7] {:label "CPU:" :fg vtx.ansi.fg.cyan}))
 ```
 
 | Option | Default | Description |
@@ -312,13 +312,13 @@ Apply smooth RGB color gradients to text. Non-interactive — all return styled 
 
 ```fennel
 ;; Gradient applied per character (horizontal)
-(print (irx.gradient-text "Rainbow text" ["#ff0000" "#ffff00" "#00ff00" "#0088ff"]))
+(print (vtx.gradient-text "Rainbow text" ["#ff0000" "#ffff00" "#00ff00" "#0088ff"]))
 
 ;; Gradient applied per line (vertical foreground)
-(print (irx.gradient-lines "line 1\nline 2\nline 3" ["#8b5cf6" "#ec4899"]))
+(print (vtx.gradient-lines "line 1\nline 2\nline 3" ["#8b5cf6" "#ec4899"]))
 
 ;; Gradient applied per line (vertical background)
-(print (irx.gradient-bg-lines "line 1\nline 2\nline 3" ["#1e3a5f" "#0d1117"]))
+(print (vtx.gradient-bg-lines "line 1\nline 2\nline 3" ["#1e3a5f" "#0d1117"]))
 ```
 
 All accept a list of 3- or 6-digit hex color stops. Colors are linearly interpolated across stops.
@@ -329,12 +329,12 @@ All accept a list of 3- or 6-digit hex color stops. Colors are linearly interpol
 
 ![input demo](docs/gif/03-input.gif)
 
-### `irx.input opts`
+### `vtx.input opts`
 
 Single-line text editor. Returns the entered string or `nil`.
 
 ```fennel
-(irx.input {:prompt      "> "
+(vtx.input {:prompt      "> "
              :placeholder "type here…"
              :value       "prefilled"
              :history     ["prev1" "prev2"]
@@ -375,15 +375,15 @@ Single-line text editor. Returns the entered string or `nil`.
 
 ---
 
-### `irx.num-input opts`
+### `vtx.num-input opts`
 
 Numeric input with arrow-key stepping and optional bounds. Returns a number or `nil`.
 
 ```fennel
-(irx.num-input {:prompt "Age: " :min 0 :max 120 :step 1 :value 25})
+(vtx.num-input {:prompt "Age: " :min 0 :max 120 :step 1 :value 25})
 
 ;; Decimal mode
-(irx.num-input {:prompt "Price: $" :min 0.01 :max 99.99 :step 0.25 :decimals 2 :value 1.00})
+(vtx.num-input {:prompt "Price: $" :min 0.01 :max 99.99 :step 0.25 :decimals 2 :value 1.00})
 ```
 
 | Option | Default | Description |
@@ -401,15 +401,15 @@ Numeric input with arrow-key stepping and optional bounds. Returns a number or `
 
 ---
 
-### `irx.password opts`
+### `vtx.password opts`
 
 Masked password input. Returns the string or `nil`.
 
 ```fennel
-(irx.password {:prompt "Password: " :mask "•"})
+(vtx.password {:prompt "Password: " :mask "•"})
 
 ;; Confirm mode: prompts twice, returns nil if they don't match
-(irx.password {:confirm true :confirm-prompt "Confirm: "})
+(vtx.password {:confirm true :confirm-prompt "Confirm: "})
 ```
 
 | Option | Default | Description |
@@ -423,12 +423,12 @@ Masked password input. Returns the string or `nil`.
 
 ---
 
-### `irx.write opts`
+### `vtx.write opts`
 
 Multi-line text editor. Returns the text string or `nil`.
 
 ```fennel
-(irx.write {:header    "Notes:"
+(vtx.write {:header    "Notes:"
              :height    8
              :value     "initial text"
              :on-change (fn [content] (print (# content) "chars"))})
@@ -448,12 +448,12 @@ Multi-line text editor. Returns the text string or `nil`.
 
 ---
 
-### `irx.slider opts`
+### `vtx.slider opts`
 
 Horizontal value slider. Returns a number or `nil`.
 
 ```fennel
-(irx.slider {:prompt "Volume: " :min 0 :max 100 :step 5 :value 50})
+(vtx.slider {:prompt "Volume: " :min 0 :max 100 :step 5 :value 50})
 ```
 
 | Option | Default | Description |
@@ -474,12 +474,12 @@ Horizontal value slider. Returns a number or `nil`.
 
 ---
 
-### `irx.autocomplete items opts`
+### `vtx.autocomplete items opts`
 
 Inline completion dropdown — query narrows results as you type. Returns the selected string or `nil`.
 
 ```fennel
-(irx.autocomplete ["apple" "apricot" "banana"] {:height 5 :fuzzy false})
+(vtx.autocomplete ["apple" "apricot" "banana"] {:height 5 :fuzzy false})
 ```
 
 | Option | Default | Description |
@@ -496,14 +496,14 @@ Inline completion dropdown — query narrows results as you type. Returns the se
 
 ![selection demo](docs/gif/04-selection.gif)
 
-### `irx.choose items opts`
+### `vtx.choose items opts`
 
 Pick one item from a list (or multiple in multi mode). Returns the selected item or a list in multi mode.
 
 ```fennel
-(irx.choose ["Fennel" "Clojure" "Lua"])
-(irx.choose items {:height 8 :multi true})
-(irx.choose items {:search true})   ; enable / search
+(vtx.choose ["Fennel" "Clojure" "Lua"])
+(vtx.choose items {:height 8 :multi true})
+(vtx.choose items {:search true})   ; enable / search
 ```
 
 | Option | Default | Description |
@@ -522,13 +522,13 @@ Pick one item from a list (or multiple in multi mode). Returns the selected item
 
 ---
 
-### `irx.checklist items opts`
+### `vtx.checklist items opts`
 
 List with toggle checkboxes. Returns a list of checked item strings, or `nil`.
 
 ```fennel
-(irx.checklist ["Option A" "Option B" "Option C"])
-(irx.checklist items {:checked [1 3] :height 8})
+(vtx.checklist ["Option A" "Option B" "Option C"])
+(vtx.checklist items {:checked [1 3] :height 8})
 ```
 
 | Option | Default | Description |
@@ -544,13 +544,13 @@ List with toggle checkboxes. Returns a list of checked item strings, or `nil`.
 
 ---
 
-### `irx.radio items opts`
+### `vtx.radio items opts`
 
 Single-select radio list — cursor and selected state are decoupled so you can navigate without losing selection. Returns the selected item or `nil`.
 
 ```fennel
-(irx.radio ["Small" "Medium" "Large"])
-(irx.radio items {:prompt "Size:" :value "Medium" :height 6})
+(vtx.radio ["Small" "Medium" "Large"])
+(vtx.radio items {:prompt "Size:" :value "Medium" :height 6})
 ```
 
 | Option | Default | Description |
@@ -566,16 +566,16 @@ Single-select radio list — cursor and selected state are decoupled so you can 
 
 ---
 
-### `irx.filter items opts`
+### `vtx.filter items opts`
 
 Incremental fuzzy or substring search. Returns `[item, ...]` or `nil`.
 
 ```fennel
-(irx.filter files {:fuzzy true :height 10})
-(irx.filter items {:multi true :prompt "search: "})
+(vtx.filter files {:fuzzy true :height 10})
+(vtx.filter items {:multi true :prompt "search: "})
 
 ;; Custom renderer — receives item string + matched byte positions
-(irx.filter items {:render (fn [item positions] (.. "[" item "]"))})
+(vtx.filter items {:render (fn [item positions] (.. "[" item "]"))})
 ```
 
 | Option | Default | Description |
@@ -599,13 +599,13 @@ Incremental fuzzy or substring search. Returns `[item, ...]` or `nil`.
 
 ![prompts demo](docs/gif/05-prompts.gif)
 
-### `irx.confirm prompt opts`
+### `vtx.confirm prompt opts`
 
 Yes/No prompt. Returns `true`, `false`, or `nil`.
 
 ```fennel
-(irx.confirm "Delete file?")
-(irx.confirm "Overwrite?" {:default false :affirmative "Yep" :negative "Nope"})
+(vtx.confirm "Delete file?")
+(vtx.confirm "Overwrite?" {:default false :affirmative "Yep" :negative "Nope"})
 ```
 
 | Option | Default | Description |
@@ -622,13 +622,13 @@ Yes/No prompt. Returns `true`, `false`, or `nil`.
 
 ---
 
-### `irx.dialog message buttons opts`
+### `vtx.dialog message buttons opts`
 
 Styled popup box with navigable button row. Returns the 1-based index of the selected button or `nil`.
 
 ```fennel
-(irx.dialog "Are you sure?" ["Cancel" "Delete"])
-(irx.dialog "Save before closing?" ["Cancel" "Discard" "Save"]
+(vtx.dialog "Are you sure?" ["Cancel" "Delete"])
+(vtx.dialog "Save before closing?" ["Cancel" "Discard" "Save"]
              {:border "rounded" :width 44})
 ```
 
@@ -645,15 +645,15 @@ Styled popup box with navigable button row. Returns the 1-based index of the sel
 
 ---
 
-### `irx.toast message opts`
+### `vtx.toast message opts`
 
 Timed inline notification. Displays a styled message for `:timeout` seconds then clears.
 
 ```fennel
-(irx.toast "Build succeeded" {:level :success :timeout 2})
-(irx.toast "Config missing"  {:level :warn})
-(irx.toast "Connection lost" {:level :error})
-(irx.toast "Watching files…" {:level :info})
+(vtx.toast "Build succeeded" {:level :success :timeout 2})
+(vtx.toast "Config missing"  {:level :warn})
+(vtx.toast "Connection lost" {:level :error})
+(vtx.toast "Watching files…" {:level :info})
 ```
 
 | Option | Default | Description |
@@ -663,12 +663,12 @@ Timed inline notification. Displays a styled message for `:timeout` seconds then
 
 ---
 
-### `irx.form fields opts`
+### `vtx.form fields opts`
 
 Sequential form — each field runs its own widget in sequence. Returns `{key → value}` or `nil` if any field is aborted. Fields with `:validate` are re-prompted on failure.
 
 ```fennel
-(irx.form
+(vtx.form
   [{:type     "input"
     :key      :name
     :label    "Full name"
@@ -696,14 +696,14 @@ Each field:
 
 ---
 
-### `irx.multi-form fields opts`
+### `vtx.multi-form fields opts`
 
 Single-screen form — all fields visible simultaneously, tab to move between them. Returns `{key → value}` or `nil`.
 
 Supports `"input"`, `"password"`, `"confirm"`, and `"num"` field types.
 
 ```fennel
-(irx.multi-form
+(vtx.multi-form
   [{:type "input"   :label "Username" :key :user :opts {:value "ada"}}
    {:type "num"     :label "Age"      :key :age  :opts {:value 30 :step 1}}
    {:type "confirm" :label "Admin?"   :key :admin :opts {:default false}}
@@ -721,13 +721,13 @@ Supports `"input"`, `"password"`, `"confirm"`, and `"num"` field types.
 
 ---
 
-### `irx.date-picker opts`
+### `vtx.date-picker opts`
 
 YYYY-MM-DD date selector. Returns `"YYYY-MM-DD"` or `nil`.
 
 ```fennel
-(irx.date-picker)
-(irx.date-picker {:value "2025-01-15"})
+(vtx.date-picker)
+(vtx.date-picker {:value "2025-01-15"})
 ```
 
 | Option | Default | Description |
@@ -748,14 +748,14 @@ Three segments (year/month/day) are navigated with tab/←/→. ↑/↓ adjust t
 
 ![navigation demo](docs/gif/06-navigation.gif)
 
-### `irx.tabs tab-list opts`
+### `vtx.tabs tab-list opts`
 
 Tabbed content view. Returns the 1-based index of the active tab on enter, or `nil`.
 
 ```fennel
-(irx.tabs
+(vtx.tabs
   [{:label "Overview" :content "Widget library for Fennel/Lua"}
-   {:label "Usage"    :content "(irx.choose items)"}
+   {:label "Usage"    :content "(vtx.choose items)"}
    {:label "Config"   :content "{:height 10}"}])
 ```
 
@@ -769,12 +769,12 @@ Tabbed content view. Returns the 1-based index of the active tab on enter, or `n
 
 ---
 
-### `irx.tree nodes opts`
+### `vtx.tree nodes opts`
 
 Collapsible tree navigator. Returns `node.data` if set, otherwise `node.label`, or `nil`.
 
 ```fennel
-(irx.tree
+(vtx.tree
   [{:label "src"
     :children [{:label "main.fnl" :data "src/main.fnl"}
                {:label "util.fnl" :data "src/util.fnl"}]}
@@ -798,13 +798,13 @@ Each node: `{:label string :children [...] :data any}`. Children make a node a d
 
 ---
 
-### `irx.file-picker opts`
+### `vtx.file-picker opts`
 
 Interactive filesystem browser. Returns the selected file path or `nil`.
 
 ```fennel
-(irx.file-picker {:path "." :height 12})
-(irx.file-picker {:dirs-only true :show-hidden true})
+(vtx.file-picker {:path "." :height 12})
+(vtx.file-picker {:dirs-only true :show-hidden true})
 ```
 
 | Option | Default | Description |
@@ -820,14 +820,14 @@ Interactive filesystem browser. Returns the selected file path or `nil`.
 
 ---
 
-### `irx.pager text opts`
+### `vtx.pager text opts`
 
 Scrollable text viewer with incremental search. Blocks until quit.
 
 ```fennel
-(irx.pager long-text)
-(irx.pager content {:height 30 :wrap true})
-(irx.pager code {:highlight (fn [line] (syntax-color line))})
+(vtx.pager long-text)
+(vtx.pager content {:height 30 :wrap true})
+(vtx.pager code {:highlight (fn [line] (syntax-color line))})
 ```
 
 | Option | Default | Description |
@@ -841,13 +841,13 @@ Scrollable text viewer with incremental search. Blocks until quit.
 
 ---
 
-### `irx.viewport content opts`
+### `vtx.viewport content opts`
 
 Inline scrollable viewer — like `pager` but without search or alternate screen. Returns `nil`.
 
 ```fennel
-(irx.viewport long-text)
-(irx.viewport content {:height 15})
+(vtx.viewport long-text)
+(vtx.viewport content {:height 15})
 ```
 
 | Option | Default | Description |
@@ -862,12 +862,12 @@ Inline scrollable viewer — like `pager` but without search or alternate screen
 
 ![progress demo](docs/gif/07-progress.gif)
 
-### `irx.spin f opts`
+### `vtx.spin f opts`
 
 Animated spinner while a function runs. The function runs as a coroutine; yield a string to update the title mid-run. Returns the function's return value.
 
 ```fennel
-(irx.spin
+(vtx.spin
   (fn []
     (coroutine.yield "Step 1…")
     (step-1)
@@ -888,12 +888,12 @@ Available spinners: `"dots"` `"dots2"` `"line"` `"bounce"` `"arrow"`.
 
 ---
 
-### `irx.multi-spin tasks opts`
+### `vtx.multi-spin tasks opts`
 
 Run multiple tasks in parallel, each with its own spinner line. Returns a table of results indexed by task order.
 
 ```fennel
-(irx.multi-spin
+(vtx.multi-spin
   [{:f (fn [] (do-work) "ok")   :title "Compiling"}
    {:f (fn [] (run-tests) "ok") :title "Testing"}
    {:f (fn [] (bundle) "ok")    :title "Bundling"}])
@@ -903,13 +903,13 @@ Tasks run as coroutines — yield to allow other tasks to advance. A green `✓`
 
 ---
 
-### `irx.progress f opts`
+### `vtx.progress f opts`
 
 Determinate or indeterminate progress bar. Calls `f` with an `update` function.
 
 ```fennel
 ;; Determinate
-(irx.progress
+(vtx.progress
   (fn [update]
     (for [i 1 100]
       (update i 100)
@@ -917,12 +917,12 @@ Determinate or indeterminate progress bar. Calls `f` with an `update` function.
   {:title "Processing…" :width 40})
 
 ;; Indeterminate
-(irx.progress
+(vtx.progress
   (fn [update] (while (not done?) (update) (do-chunk)))
   {:indeterminate true :title "Working…"})
 
 ;; With ETA and transfer rate
-(irx.progress
+(vtx.progress
   (fn [update]
     (for [i 1 total]
       (update (* i chunk-size) total-bytes)
@@ -945,12 +945,12 @@ Determinate or indeterminate progress bar. Calls `f` with an `update` function.
 
 ---
 
-### `irx.multi-progress tasks opts`
+### `vtx.multi-progress tasks opts`
 
 Stacked progress bars for parallel tasks. Blocks until all complete.
 
 ```fennel
-(irx.multi-progress
+(vtx.multi-progress
   [{:f     (fn [update] (for [i 1 100] (update i 100) (process i)))
     :title "Compiling"}
    {:f     (fn [update] (for [i 1 50]  (update i 50)  (run-test i)))
@@ -965,12 +965,12 @@ Each task is `{:f fn :title string}` where `f` receives `(update value total)`. 
 
 ![table demo](docs/gif/08-table.gif)
 
-### `irx.tbl headers rows opts`
+### `vtx.tbl headers rows opts`
 
 Scrollable table with optional row selection and column sort. Returns the selected row (as an array) or `nil`.
 
 ```fennel
-(irx.tbl
+(vtx.tbl
   ["Name" "Age" "City"]
   [["Alice" "30" "NYC"]
    ["Bob"   "25" "LA"]]
@@ -995,12 +995,12 @@ Column sort is numeric-aware: columns where all visible values parse as numbers 
 
 ## Utilities
 
-### `irx.wrap text width`
+### `vtx.wrap text width`
 
 Word-wrap text to a maximum column width. Returns the wrapped string.
 
 ```fennel
-(print (irx.wrap "A very long sentence that needs wrapping." 40))
+(print (vtx.wrap "A very long sentence that needs wrapping." 40))
 ```
 
 ---
@@ -1008,8 +1008,8 @@ Word-wrap text to a maximum column width. Returns the wrapped string.
 ### Clipboard
 
 ```fennel
-(irx.clipboard-copy "text to copy")
-(local text (irx.clipboard-paste))   ; returns string or nil
+(vtx.clipboard-copy "text to copy")
+(local text (vtx.clipboard-paste))   ; returns string or nil
 ```
 
 Uses `pbcopy`/`pbpaste` on macOS, `xclip` or `xsel` on Linux. No error is raised if none are available.
@@ -1022,11 +1022,11 @@ The filter widget's matching functions are also exported:
 
 ```fennel
 ;; Returns a list of matched byte positions, or nil
-(irx.fuzzy-match "hello world" "hlo")   ; → {1 3 5}
+(vtx.fuzzy-match "hello world" "hlo")   ; → {1 3 5}
 
 ;; Filter a list of strings
 ;; Returns [{:i orig-index :item string :positions [...]}]
-(local filter-m (require :irx.widget.filter))
+(local filter-m (require :vtx.widget.filter))
 (filter-m.filter-items items query fuzzy?)
 ```
 
@@ -1037,13 +1037,13 @@ The filter widget's matching functions are also exported:
 Apply a built-in theme or supply a custom color table. Themes control the default colors of all interactive widgets.
 
 ```fennel
-(irx.set-theme "nord")      ; built-in: default, nord, dracula, gruvbox, light
-(irx.set-theme {})          ; reset to no theme
-(irx.set-theme              ; custom
-  {:cursor-fg   (irx.ansi.fg256 214)
-   :prompt-fg   (irx.ansi.fg256 208)
-   :selected-fg (irx.ansi.fg256 142)
-   :match-fg    (irx.ansi.fg256 229)})
+(vtx.set-theme "nord")      ; built-in: default, nord, dracula, gruvbox, light
+(vtx.set-theme {})          ; reset to no theme
+(vtx.set-theme              ; custom
+  {:cursor-fg   (vtx.ansi.fg256 214)
+   :prompt-fg   (vtx.ansi.fg256 208)
+   :selected-fg (vtx.ansi.fg256 142)
+   :match-fg    (vtx.ansi.fg256 229)})
 ```
 
 Theme keys (all optional):
@@ -1068,10 +1068,10 @@ Per-widget options always take precedence over the theme.
 
 ## ANSI utilities
 
-`irx.ansi` exposes all escape sequences directly.
+`vtx.ansi` exposes all escape sequences directly.
 
 ```fennel
-(local ansi irx.ansi)
+(local ansi vtx.ansi)
 
 ;; Attributes
 ansi.bold  ansi.dim  ansi.italic  ansi.underline
@@ -1122,7 +1122,7 @@ ansi.screen.alt-on       ansi.screen.alt-off
 The pager responds to terminal resize automatically. Other widgets re-query the terminal size on each render. For resize support, build the optional native extension:
 
 ```sh
-make compile-native   # compiles src/irx_posix_native.c → irx/posix_native.so
+make compile-native   # compiles src/vtx_posix_native.c → vtx/posix_native.so
 ```
 
 The extension is loaded at runtime with a graceful fallback. Without it, resize is detected on the next key event via `stty size`.
@@ -1141,9 +1141,9 @@ The extension is loaded at runtime with a graceful fallback. Without it, resize 
 make test            # run test suite (requires fennel + faith vendored in fnl/)
 make demo            # run the interactive demo
 make compile         # compile all .fnl → lua/
-make compile-native  # build SIGWINCH C extension → irx/posix_native.so
+make compile-native  # build SIGWINCH C extension → vtx/posix_native.so
 make repl            # start a Fennel REPL with the correct path
 bash docs/record.sh  # regenerate showcase GIFs (requires asciinema + agg)
 ```
 
-Tests live in `fnl/irx/test/`, one file per module. The test runner is `test.fnl` using [faith](https://git.sr.ht/~technomancy/faith) (vendored at `fnl/faith.fnl`).
+Tests live in `fnl/vtx/test/`, one file per module. The test runner is `test.fnl` using [faith](https://git.sr.ht/~technomancy/faith) (vendored at `fnl/faith.fnl`).
