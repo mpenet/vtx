@@ -4,13 +4,16 @@ FENNEL_FLAGS = --add-fennel-path "fnl/?.fnl" --add-fennel-path "fnl/?/init.fnl"
 
 LUA_INCLUDE ?= $(shell pkg-config --cflags lua5.5 2>/dev/null || pkg-config --cflags lua-5.5 2>/dev/null || echo -I/usr/local/include)
 
-.PHONY: demo repl compile compile-native clean test
+.PHONY: demo demo-ship repl compile compile-native clean test
 
 test:
 	$(FENNEL) $(FENNEL_FLAGS) test.fnl
 
 demo:
 	$(FENNEL) $(FENNEL_FLAGS) demo.fnl
+
+demo-ship:
+	$(FENNEL) $(FENNEL_FLAGS) demo-ship.fnl
 
 repl:
 	$(FENNEL) $(FENNEL_FLAGS) --repl
