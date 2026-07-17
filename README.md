@@ -10,6 +10,19 @@ inspired by [gum](https://github.com/charmbracelet/gum).  Works with PUC Lua
 
 ---
 
+**Text input** — `input`, `num-input`, `password`, `write` (multi-line), `autocomplete`, `slider`  
+**Selection** — `choose`, `radio`, `checklist`, `filter` (fuzzy/exact)  
+**Prompts** — `confirm`, `dialog`, `toast`, `form`, `multi-form`, `date-picker`  
+**Navigation** — `tabs`, `tree`, `file-picker`, `pager`, `viewport`  
+**Progress** — `spin`, `multi-spin`, `progress`, `multi-progress`  
+**Display** — `tbl`, `gauge`, `sparkline`, `style`, `hbox`, `vbox`, `separator`, gradients  
+**Theming** — built-in themes, full custom theme support, 256-color + truecolor ANSI  
+
+
+And more... See the full widget reference below.
+
+---
+
 ## Contents
 
 - [Requirements](#requirements)
