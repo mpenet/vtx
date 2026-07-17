@@ -4,7 +4,7 @@ FENNEL_FLAGS = --add-fennel-path "fnl/?.fnl" --add-fennel-path "fnl/?/init.fnl"
 
 LUA_INCLUDE ?= $(shell pkg-config --cflags lua5.5 2>/dev/null || pkg-config --cflags lua-5.5 2>/dev/null || echo -I/usr/local/include)
 
-.PHONY: demo demo-ship repl compile compile-native clean test
+.PHONY: demo demo-ship demo-ship-cast demo-ship-gif repl compile compile-native clean test
 
 test:
 	$(FENNEL) $(FENNEL_FLAGS) test.fnl
@@ -14,6 +14,17 @@ demo:
 
 demo-ship:
 	$(FENNEL) $(FENNEL_FLAGS) demo-ship.fnl
+
+demo-ship-cast:
+	asciinema rec demo-ship.cast --overwrite -i 2 \
+	  --command "$(FENNEL) $(FENNEL_FLAGS) demo-ship.fnl"
+
+demo-ship-gif:
+	agg --font-dir "$(HOME)/Library/Fonts" \
+	    --font-family "Berkeley Mono,TX-02 Condensed" \
+	    --font-size 20 \
+        --speed 2 \
+	    demo-ship.cast demo-ship.gif
 
 repl:
 	$(FENNEL) $(FENNEL_FLAGS) --repl

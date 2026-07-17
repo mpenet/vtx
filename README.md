@@ -1,9 +1,12 @@
 # vtx
 
-Terminal UI widgets for [Fennel](https://fennel-lang.org/), inspired by [gum](https://github.com/charmbracelet/gum).  
-Works with PUC Lua 5.2+ and LuaJIT. No C extensions required for core functionality.
+30+ TUI widgets for [Fennel](https://fennel-lang.org/),
+inspired by [gum](https://github.com/charmbracelet/gum).  Works with PUC Lua
+5.2+ and LuaJIT. No C extensions required for core functionality.
 
 [![CI](https://github.com/mpenet/vtx/actions/workflows/ci.yml/badge.svg)](https://github.com/mpenet/vtx/actions/workflows/ci.yml)
+
+![vtx demo](demo-ship.gif)
 
 ---
 
