@@ -113,21 +113,20 @@
     (render-frame)
     (pause 0.07)))
 
-(section "MISSION BRIEFING  [q to close]")
+(section "ALERT CONDITION")
 
-(vtx.pager (.. (ansi.style "MISSION ORDER 7-ALPHA — CLASSIFIED
-" ansi.bold (ansi.fg256 46)) "\n" "Objective: Reach sector 7-G and establish contact with
-" "the unidentified signal source detected on stardate 2187.3.
-" "\n" (ansi.style "KNOWN HAZARDS:
-" (ansi.fg256 226)) "  · Asteroid field at coordinates 44.7 / 122.9
-" "  · Ion storm projected path intersects route B
-" "  · Hostile vessel activity near relay station Theta
-" "\n" (ansi.style "RULES OF ENGAGEMENT: " (ansi.fg256 48)) "DEFENSIVE ONLY
-" "\n" "Estimated travel time : 14.6 standard hours
-" "Fuel required         : 340 units  (reserve: 412)
-" "Crew at stations      : REQUIRED before jump
-" "Shield window on jump : 4.2 seconds — CRITICAL
-" "\n" (ansi.style "[END OF BRIEFING]" (ansi.fg256 240))) {:height 12})
+(let [levels ["CONDITION GREEN  · all clear, standard operations"
+              "CONDITION YELLOW · heightened readiness, shields on standby"
+              "CONDITION RED    · battle stations, all hands on deck"
+              "CONDITION BLACK  · silent running, non-essential systems off"]
+      colors [(ansi.fg256 46) (ansi.fg256 226) (ansi.fg256 196) (ansi.fg256 238)]
+      level (vtx.radio levels {})]
+  (when level
+    (var col (ansi.fg256 46))
+    (each [i l (ipairs levels)]
+      (when (= l level)
+        (set col (. colors i))))
+    (print (vtx.style (.. "  " level "  ") {:bold true :border "normal" :fg col}))))
 
 (section "SELECT DESTINATION")
 
@@ -139,6 +138,43 @@
   (when dest
     (print (vtx.style (.. "  DESTINATION LOCKED: " (. dest 1) "  ") {:bold true :border "normal" :fg (ansi.fg256 46)}))))
 
+(section "AWAY TEAM SELECTION")
+
+(let [selected (vtx.checklist ["Chen, Y.     — Commander"
+                               "Okafor, B.   — Lt. Engineer"
+                               "Vasquez, M.  — Pilot"
+                               "Nakamura, T. — Science Officer"
+                               "Reeves, D.   — Medic"] {:height 7})]
+  (if (and selected (> (# selected) 0))
+      (print (vtx.style (.. "  AWAY TEAM: " (table.concat selected " · ") "  ") {:border "normal" :fg (ansi.fg256 46)}))
+      (print (ansi.style "  NO AWAY TEAM ASSIGNED" (ansi.fg256 238)))))
+
+(section "WARP FACTOR")
+
+(let [wf (vtx.slider {:max 9
+                      :min 1
+                      :prompt (ansi.style "WARP > " (ansi.fg256 46))
+                      :step 1
+                      :value 5
+                      :width 36})]
+  (when wf
+    (print (vtx.style (.. "  WARP FACTOR " wf " ENGAGED  ") {:bold true :border "normal" :fg (ansi.fg256 46)}))))
+
+(section "HAIL FREQUENCY")
+
+(let [contacts ["STARBASE OMEGA      — Command HQ         [priority]"
+                "RELAY STATION ALPHA — Nav beacon         [sector 4]"
+                "DEEP SPACE OUTPOST  — Emergency shelter  [sector 9]"
+                "USS MERIDIAN        — Sister vessel      [sector 6]"
+                "NEUTRAL ZONE BRAVO  — Diplomatic post    [border]"
+                "ASTEROID BELT R-44  — Mining ops         [sector 3]"
+                "SCIENCE VESSEL HERA — Research partner   [sector 7]"
+                "SALVAGE TUG DELTA   — Recovery asset     [sector 5]"]
+      contact (vtx.autocomplete contacts {:height 5 :prompt (ansi.style "CONTACT> " (ansi.fg256 46))})]
+  (if contact
+      (print (vtx.style (.. "  HAILING: " contact "  ") {:bold true :border "normal" :fg (ansi.fg256 46)}))
+      (print (ansi.style "  NO CONTACT SELECTED" (ansi.fg256 238)))))
+
 (section "CREW MANIFEST  [enter/q to close]")
 
 (vtx.tbl ["NAME" "RANK" "STATION" "STATUS"] [["Chen, Y." "Commander" "BRIDGE" "READY"]
@@ -146,6 +182,23 @@
                                              ["Vasquez, M." "Pilot" "HELM" "READY"]
                                              ["Nakamura, T." "Science Off." "LAB" "READY"]
                                              ["Reeves, D." "Medic" "MEDBAY" "ON CALL"]] {:height 7})
+
+(section "POWER DISTRIBUTION")
+
+(let [power (vtx.form [{:key "shields"
+                        :label (ansi.style "SHIELD POWER  (0–100%)" (ansi.fg256 48))
+                        :opts {:max 100 :min 0 :prompt (ansi.style "  > " (ansi.fg256 46)) :value 75}
+                        :type "num-input"}
+                       {:key "weapons"
+                        :label (ansi.style "WEAPONS POWER (0–100%)" (ansi.fg256 48))
+                        :opts {:max 100 :min 0 :prompt (ansi.style "  > " (ansi.fg256 46)) :value 50}
+                        :type "num-input"}
+                       {:key "engines"
+                        :label (ansi.style "ENGINE POWER  (0–100%)" (ansi.fg256 48))
+                        :opts {:max 100 :min 0 :prompt (ansi.style "  > " (ansi.fg256 46)) :value 90}
+                        :type "num-input"}])]
+  (when power
+    (print (vtx.style (.. "  SHIELDS " power.shields "%  ·  WEAPONS " power.weapons "%  ·  ENGINES " power.engines "%  ") {:border "normal" :fg (ansi.fg256 46)}))))
 
 (section "PRE-LAUNCH SYSTEM CHECKS")
 
