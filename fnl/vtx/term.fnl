@@ -2,16 +2,6 @@
 
 (local ansi (require "vtx.ansi"))
 
-(var saved-stty nil)
-
-(fn raw-mode-enter []
-  (set saved-stty (posix.stty-save))
-  (posix.raw-mode-enter))
-
-(fn raw-mode-exit []
-  (posix.stty-restore saved-stty)
-  (set saved-stty nil))
-
 (fn read-byte []
   (posix.read-byte))
 
@@ -26,6 +16,41 @@
               (table.insert buf c)
               (when (c:match "[A-Za-z~]")
                 (set done true))))))
+    (table.concat buf)))
+
+(fn read-paste-content []
+  (let [buf {}]
+    (var done false)
+    (while (not done)
+      (let [c (read-byte)]
+        (if (not c)
+            (set done true)
+            (= c "\027")
+            (let [n1 (read-byte)]
+              (if (= n1 "[")
+                  (let [n2 (read-byte)
+                        n3 (read-byte)
+                        n4 (read-byte)
+                        n5 (read-byte)]
+                    (if (and (= n2 "2") (= n3 "0") (= n4 "1") (= n5 "~"))
+                        (set done true)
+                        (do
+                          (table.insert buf c)
+                          (when n1
+                            (table.insert buf n1))
+                          (when n2
+                            (table.insert buf n2))
+                          (when n3
+                            (table.insert buf n3))
+                          (when n4
+                            (table.insert buf n4))
+                          (when n5
+                            (table.insert buf n5)))))
+                  (do
+                    (table.insert buf c)
+                    (when n1
+                      (table.insert buf n1)))))
+            (table.insert buf c))))
     (table.concat buf)))
 
 (fn read-key []
@@ -53,7 +78,39 @@
                 "1;2B" "shift-down"
                 "1;2C" "shift-right"
                 "1;2D" "shift-left"
-                x (.. "\027[" x))
+                "M" (let [b (read-byte)
+                          x (read-byte)
+                          y (read-byte)]
+                      (if (and b x y)
+                          {:button (- (string.byte b) 32)
+                           :col (- (string.byte x) 32)
+                           :mouse true
+                           :row (- (string.byte y) 32)}
+                          "mouse"))
+                "200~" {:paste (read-paste-content)}
+                x (let [(button col row action) (x:match "^<(%d+);(%d+);(%d+)([Mm])$")]
+                    (if button
+                        {:action
+                         (if (= action "M")
+                             "press"
+                             "release")
+                         :button
+                         (tonumber button)
+                         :col
+                         (tonumber col)
+                         :mouse
+                         true
+                         :row
+                         (tonumber row)}
+                        (.. "\027[" x))))
+              (= next "O")
+              (let [c (read-byte)]
+                (match c
+                  "P" "f1"
+                  "Q" "f2"
+                  "R" "f3"
+                  "S" "f4"
+                  _ (.. "\027O" (or c ""))))
               (= next "\027")
               "escape"
               (.. "\027" next)))
@@ -67,13 +124,22 @@
 ")))
 
 (fn cursor-up [n]
-  (write (ansi.cursor.up n)))
+  (when (> n 0)
+    (write (ansi.cursor.up n))))
 
 (fn cursor-down [n]
-  (write (ansi.cursor.down n)))
+  (when (> n 0)
+    (write (ansi.cursor.down n))))
 
 (fn cursor-col [n]
   (write (ansi.cursor.col n)))
+
+(fn clear-rows [n]
+  (for [_ 1 n]
+    (write (.. "\r" ansi.screen.clear-right "\r
+")))
+  (when (> n 0)
+    (write (ansi.cursor.up n))))
 
 (fn cursor-hide []
   (write ansi.cursor.hide))
@@ -90,11 +156,29 @@
 (fn size []
   (posix.term-size))
 
+(fn make-frame-cache []
+  {:last nil})
+
+(fn render-frame [cache render-fn]
+  (let [buf {}
+        push (fn [s]
+               (table.insert buf s))
+        _ (render-fn push)
+        frame (table.concat buf)]
+    (when (not= frame cache.last)
+      (write frame)
+      (set cache.last frame))))
+
 (fn with-raw [f ?opts]
   (when (and ?opts ?opts.alt-screen)
     (write ansi.screen.alt-on)
     (write ansi.screen.clear)
     (write ansi.screen.home))
+  (when (and ?opts ?opts.bracketed-paste)
+    (write "\027[?2004h"))
+  (when (and ?opts ?opts.mouse)
+    (write "\027[?1000h")
+    (write "\027[?1006h"))
   (let [saved (posix.stty-save)]
     (posix.raw-mode-enter)
     (let [(ok err) (pcall (fn []
@@ -102,6 +186,11 @@
                             (f)))]
       (pcall cursor-show)
       (pcall posix.stty-restore saved)
+      (when (and ?opts ?opts.mouse)
+        (pcall write "\027[?1006l")
+        (pcall write "\027[?1000l"))
+      (when (and ?opts ?opts.bracketed-paste)
+        (pcall write "\027[?2004l"))
       (when (and ?opts ?opts.alt-screen)
         (pcall write ansi.screen.alt-off))
       (when (not ok)
@@ -109,15 +198,16 @@
 
 {:clear-line clear-line
  :clear-right clear-right
+ :clear-rows clear-rows
  :cursor-col cursor-col
  :cursor-down cursor-down
  :cursor-hide cursor-hide
  :cursor-show cursor-show
  :cursor-up cursor-up
- :raw-mode-enter raw-mode-enter
- :raw-mode-exit raw-mode-exit
+ :make-frame-cache make-frame-cache
  :read-byte read-byte
  :read-key read-key
+ :render-frame render-frame
  :size size
  :with-raw with-raw
  :write write

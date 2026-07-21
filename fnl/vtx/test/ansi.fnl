@@ -92,6 +92,15 @@
 (fn test-strip-mixed-motion-and-color []
   (faith.= "ab" (ansi.strip (.. "\027[1A" "\027[32m" "a" "\027[5A" "\027[0m" "b"))))
 
+(fn test-strip-osc-bel []
+  (faith.= "foo" (ansi.strip "foo\027]0;title\a")))
+
+(fn test-strip-osc-st []
+  (faith.= "foo" (ansi.strip "foo\027]0;title\027\\")))
+
+(fn test-strip-osc-hyperlink []
+  (faith.= "click" (ansi.strip "\027]8;;https://example.com\027\\click\027]8;;\027\\")))
+
 (fn test-style-no-attrs []
   (faith.= "x" (ansi.style "x")))
 
@@ -481,6 +490,9 @@
  :test-strip-fg test-strip-fg
  :test-strip-mixed-motion-and-color test-strip-mixed-motion-and-color
  :test-strip-multi test-strip-multi
+ :test-strip-osc-bel test-strip-osc-bel
+ :test-strip-osc-hyperlink test-strip-osc-hyperlink
+ :test-strip-osc-st test-strip-osc-st
  :test-strip-plain test-strip-plain
  :test-strip-utf8-preserved test-strip-utf8-preserved
  :test-style-contains-esc test-style-contains-esc

@@ -14,11 +14,7 @@
    :prompt-fg ansi.fg.cyan})
 
 (fn autocomplete [items user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (var query "")
     (var matches (filter-items items "" opts.fuzzy))
     (var cursor-idx 0)
@@ -68,9 +64,7 @@
                   (set query (.. query k))
                   (set matches (filter-items items query opts.fuzzy))
                   (set cursor-idx 0)))))))
-    (for [_ 1 (+ 1 opts.height)]
-      (term.write (.. "\r" ansi.screen.clear-right "\r\n")))
-    (term.cursor-up (+ 1 opts.height))
+    (term.clear-rows (+ 1 opts.height))
     (when (not aborted) result)))
 
 {:autocomplete autocomplete}

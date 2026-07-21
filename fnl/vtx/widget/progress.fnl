@@ -79,11 +79,7 @@
     (.. (ansi.style (.. "[" bar "]") opts.bar-fg) pct-str " " state.title done-mark ansi.screen.clear-right)))
 
 (fn progress [f user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (posix.write ansi.cursor.hide)
     (var bounce-pos 1)
     (var bounce-dir 1)
@@ -118,11 +114,7 @@
         (error err)))))
 
 (fn multi-progress [tasks user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [ntasks (# tasks)
           states {}
           cos {}]

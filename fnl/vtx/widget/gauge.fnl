@@ -13,11 +13,7 @@
    :width 20})
 
 (fn gauge [value ?total user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [pct (math.max 0 (math.min 1 (if ?total
                                           (if (> ?total 0) (/ value ?total) 0)
                                           value)))

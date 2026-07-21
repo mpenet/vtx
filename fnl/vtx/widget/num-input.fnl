@@ -51,11 +51,7 @@
     (fmt new-n opts.decimals)))
 
 (fn num-input [user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (var buf (fmt opts.value opts.decimals))
     (var result nil)
     (term.with-raw (fn []
@@ -69,8 +65,8 @@
                                                       (set result n)
                                                       (set running false)))
                            "\003" (set running false)
-                           (where (or "up" "k")) (set buf (step-value buf opts.value opts.step opts))
-                           (where (or "down" "j")) (set buf (step-value buf opts.value (- opts.step) opts))
+                           (where (or "up" "k" "\016")) (set buf (step-value buf opts.value opts.step opts))
+                           (where (or "down" "j" "\014")) (set buf (step-value buf opts.value (- opts.step) opts))
                            "page-up" (set buf (step-value buf opts.value (* 10 opts.step) opts))
                            "page-down" (set buf (step-value buf opts.value (* -10 opts.step) opts))
                            (where (or "home" "\001")) (when opts.min
@@ -82,7 +78,7 @@
                            "\021" (set buf "")
                            _ (when (and (= (type k) "string") (= (# k) 1))
                                (when (or (k:match "%d") (and (= k "-") (= (# buf) 0)) (and (= k ".") (> opts.decimals 0) (not (buf:find "." 1 true))))
-                                 (set buf (.. buf k)))))))) {})
+                                 (set buf (.. buf k)))))))))
     (term.writeln "")
     result))
 

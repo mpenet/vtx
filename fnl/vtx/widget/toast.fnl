@@ -16,11 +16,7 @@
 (local default-opts {:level "info" :timeout 3})
 
 (fn toast [message user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [color (or (. level-colors opts.level) ansi.fg.cyan)
           icon (or (. level-icons opts.level) "")
           line (ansi.style (.. icon message) color)]

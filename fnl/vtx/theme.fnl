@@ -74,19 +74,37 @@
   (if (= (type name-or-table) "string")
       (let [t (. built-in name-or-table)]
         (if t
-            (set current t)
+            (set current (collect [k v (pairs t)] k v))
             (error (.. "vtx: unknown theme: " name-or-table))))
       (= (type name-or-table) "table")
-      (set current name-or-table)
+      (set current (collect [k v (pairs name-or-table)] k v))
       (error "vtx: set-theme expects a string name or table")))
+
+(fn merge [default-opts user-opts]
+  (let [opts (collect [k v (pairs default-opts)] k v)]
+    (each [k v (pairs current)]
+      (when (not= nil (. opts k))
+        (tset opts k v)))
+    (when user-opts
+      (each [k v (pairs user-opts)]
+        (tset opts k v)))
+    opts))
 
 (fn get-theme []
   current)
 
 (fn apply [opts]
+  "Overrides values in `opts` with the current theme, but only for keys that
+already exist in `opts`. Theme keys not present in the widget's default-opts
+are silent no-ops. This lets themes ship extra keys (e.g. tron's `:active-fg`,
+                                                          consumed only by tabs) without breaking widgets that don't know about them."
   (each [k v (pairs current)]
     (when (not= nil (. opts k))
       (tset opts k v)))
   opts)
 
-{:apply apply :built-in built-in :get-theme get-theme :set-theme set-theme}
+{:apply apply
+ :built-in built-in
+ :get-theme get-theme
+ :merge merge
+ :set-theme set-theme}

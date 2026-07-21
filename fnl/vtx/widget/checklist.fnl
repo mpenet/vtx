@@ -6,6 +6,8 @@
 
 (local theme (require "vtx.theme"))
 
+(local list-nav (require "vtx.list-nav"))
+
 (local default-opts {:checked []
                      :cursor "> "
                      :cursor-fg ansi.fg.cyan
@@ -33,65 +35,53 @@
     (.. prefix box " " styled-text)))
 
 (fn checklist [items user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [n (# items)
           height (math.min opts.height n)
+          nav (list-nav.make-state n height)
           checked {}]
       (each [_ idx (ipairs opts.checked)]
         (when (and (>= idx 1) (<= idx n))
           (tset checked idx true)))
-      (var cursor 1)
-      (var offset 0)
       (var result nil)
       (var term-w 80)
-      (term.with-raw (fn []
-                       (var running true)
-                       (while running
-                         (set term-w (let [(_ c) (term.size)]
-                                       (or c 80)))
-                         (when (< cursor (+ offset 1))
-                           (set offset (- cursor 1)))
-                         (when (> cursor (+ offset height))
-                           (set offset (- cursor height)))
-                         (for [row 1 height]
-                           (let [i (+ offset row)]
-                             (term.write (.. "\r" (if (<= i n)
-                                                      (render-item (. items i) i cursor checked opts term-w)
-                                                      "") ansi.screen.clear-right "\r
+      (let [fcache (term.make-frame-cache)]
+        (term.with-raw (fn []
+                         (var running true)
+                         (while running
+                           (set term-w (let [(_ c) (term.size)]
+                                         (or c 80)))
+                           (list-nav.clamp nav)
+                           (term.render-frame fcache (fn [push]
+                                                       (list-nav.each-visible nav (fn [_row i _is-cursor]
+                                                                                    (push (.. "\r" (if (<= i n)
+                                                                                                       (render-item (. items i) i nav.cursor checked opts term-w)
+                                                                                                       "") ansi.screen.clear-right "\r
 "))))
-                         (let [nchecked (accumulate [c 0 _ _ (pairs checked)] (+ c 1))]
-                           (term.write (.. "\r" (ansi.style (.. nchecked "/" n " · space:toggle · a:all · enter:confirm") ansi.dim) ansi.screen.clear-right)))
-                         (term.cursor-up height)
-                         (let [k (term.read-key)]
-                           (match k
-                             (where (or "up" "k" "\016")) (set cursor (math.max 1 (- cursor 1)))
-                             (where (or "down" "j" "\014")) (set cursor (math.min n (+ cursor 1)))
-                             "g" (set cursor 1)
-                             "G" (set cursor n)
-                             " " (if (. checked cursor)
-                                     (tset checked cursor nil)
-                                     (tset checked cursor true))
-                             "a" (if (= (next checked) nil)
-                                     (for [i 1 n]
-                                       (tset checked i true))
-                                     (for [i 1 n]
-                                       (tset checked i nil)))
-                             (where (or "\r" "\n")) (do
-                                                      (let [picks {}]
-                                                        (for [i 1 n]
-                                                          (when (. checked i)
-                                                            (table.insert picks (. items i))))
-                                                        (set result picks))
-                                                      (set running false))
-                             (where (or "q" "\003" "escape")) (set running false))))) nil)
-      (for [_ 1 (+ height 1)]
-        (term.write (.. "\r" ansi.screen.clear-right "\r
-")))
-      (term.cursor-up (+ height 1))
+                                                       (let [nchecked (accumulate [c 0 _ _ (pairs checked)] (+ c 1))]
+                                                         (push (.. "\r" (ansi.style (.. nchecked "/" n " · space:toggle · a:all · enter:confirm") ansi.dim) ansi.screen.clear-right)))
+                                                       (push (ansi.cursor.up height))))
+                           (let [k (term.read-key)]
+                             (if (list-nav.handle-key nav k)
+                                 nil
+                                 (match k
+                                   " " (if (. checked nav.cursor)
+                                           (tset checked nav.cursor nil)
+                                           (tset checked nav.cursor true))
+                                   "a" (if (= (next checked) nil)
+                                           (for [i 1 n]
+                                             (tset checked i true))
+                                           (for [i 1 n]
+                                             (tset checked i nil)))
+                                   (where (or "\r" "\n")) (do
+                                                            (let [picks {}]
+                                                              (for [i 1 n]
+                                                                (when (. checked i)
+                                                                  (table.insert picks (. items i))))
+                                                              (set result picks))
+                                                            (set running false))
+                                   (where (or "q" "\003" "escape")) (set running false))))))))
+      (term.clear-rows (+ height 1))
       result)))
 
 {:checklist checklist :render-item render-item}

@@ -51,8 +51,8 @@
                          (where (or "\b" "\127")) (when (> pos 0)
                                                     (set buf (.. (buf:sub 1 (- pos 1)) (buf:sub (+ pos 1))))
                                                     (set pos (- pos 1)))
-                         "delete" (when (< pos (# buf))
-                                    (set buf (.. (buf:sub 1 pos) (buf:sub (+ pos 2)))))
+                         (where (or "delete" "\004")) (when (< pos (# buf))
+                                                        (set buf (.. (buf:sub 1 pos) (buf:sub (+ pos 2)))))
                          (where (or "left" "\002")) (when (> pos 0)
                                                       (set pos (- pos 1)))
                          (where (or "right" "\006")) (when (< pos (# buf))
@@ -70,11 +70,7 @@
   result)
 
 (fn password [user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (if opts.confirm
         (let [pw1 (read-password opts nil)]
           (when pw1
@@ -82,7 +78,7 @@
               (if (and pw2 (= pw1 pw2))
                   pw1
                   (do
-                    (term.writeln "Passwords do not match.")
+                    (term.writeln (ansi.style "Passwords do not match." ansi.fg.red))
                     nil)))))
         (read-password opts nil))))
 

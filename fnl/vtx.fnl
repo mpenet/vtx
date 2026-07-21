@@ -1,4 +1,6 @@
-(local {:hbox hbox :vbox vbox} (require "vtx.widget.layout"))
+(local {:grid grid :hbox hbox :vbox vbox} (require "vtx.widget.layout"))
+
+(local keymap (require "vtx.keymap"))
 
 (local {:num-input num-input} (require "vtx.widget.num-input"))
 
@@ -78,6 +80,63 @@
 
 (local {:apply apply-theme :built-in themes :get-theme get-theme :set-theme set-theme} (require "vtx.theme"))
 
+(local widgets {:autocomplete autocomplete
+                :checklist checklist
+                :choose choose
+                :confirm confirm
+                :date-picker date-picker
+                :dialog dialog
+                :file-picker file-picker
+                :filter filter
+                :form form
+                :gauge gauge
+                :input input
+                :key-help key-help
+                :multi-form multi-form
+                :multi-progress multi-progress
+                :multi-spin multi-spin
+                :num-input num-input
+                :pager pager
+                :password password
+                :progress progress
+                :radio radio
+                :slider slider
+                :sparkline sparkline
+                :spin spin
+                :tabs tabs
+                :tbl tbl
+                :toast toast
+                :tree tree
+                :viewport viewport
+                :write write})
+
+(local styles {:borders borders
+               :grid grid
+               :hbox hbox
+               :height-of height-of
+               :merge merge-style
+               :place place
+               :separator separator
+               :style style
+               :vbox vbox
+               :width-of width-of})
+
+(local gradients {:bg-lines gradient-bg-lines
+                  :color-at color-at
+                  :hex->rgb hex->rgb
+                  :lerp-color lerp-color
+                  :lines gradient-lines
+                  :parse-stops parse-stops
+                  :text gradient-text})
+
+(local themes-api {:apply apply-theme :built-in themes :get get-theme :set set-theme})
+
+(local util {:clipboard-copy clipboard-copy
+             :clipboard-paste clipboard-paste
+             :fuzzy-match fuzzy-match
+             :spinners spinners
+             :wrap wrap})
+
 {:ansi ansi
  :apply-theme apply-theme
  :autocomplete autocomplete
@@ -99,11 +158,14 @@
  :gradient-bg-lines gradient-bg-lines
  :gradient-lines gradient-lines
  :gradient-text gradient-text
+ :gradients gradients
+ :grid grid
  :hbox hbox
  :height-of height-of
  :hex->rgb hex->rgb
  :input input
  :key-help key-help
+ :keymap keymap
  :lerp-color lerp-color
  :merge-style merge-style
  :multi-form multi-form
@@ -123,14 +185,18 @@
  :spin spin
  :spinners spinners
  :style style
+ :styles styles
  :tabs tabs
  :tbl tbl
  :term term
  :themes themes
+ :themes-api themes-api
  :toast toast
  :tree tree
+ :util util
  :vbox vbox
  :viewport viewport
+ :widgets widgets
  :width-of width-of
  :wrap wrap
  :write write}

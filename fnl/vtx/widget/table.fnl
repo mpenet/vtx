@@ -6,6 +6,8 @@
 
 (local theme (require "vtx.theme"))
 
+(local list-nav (require "vtx.list-nav"))
+
 (local default-opts {:header-fg ansi.fg.cyan
                      :height 10
                      :multi false
@@ -53,38 +55,38 @@
     sorted))
 
 (fn tbl [headers rows user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (when (> (# rows) 0)
       (let [widths (col-widths headers rows)
             n (# rows)
             height (math.min opts.height n)
-            ncols (# headers)]
-        (var offset 0)
-        (var cursor 1)
+            ncols (# headers)
+            nav (list-nav.make-state n height)
+            fcache (term.make-frame-cache)]
         (var result nil)
         (var selected {})
         (var term-w 80)
         (var sort-col opts.sort-col)
         (var sort-asc opts.sort-asc)
-        (fn clamp []
-          (set cursor (math.max 1 (math.min cursor n)))
-          (when (< cursor (+ offset 1))
-            (set offset (- cursor 1)))
-          (when (> cursor (+ offset height))
-            (set offset (- cursor height))))
+        (var cached-rows nil)
+        (var cached-key nil)
+        (fn sorted []
+          (let [key (if sort-col
+                        (.. sort-col ":" (tostring sort-asc))
+                        "")]
+            (when (not= key cached-key)
+              (set cached-rows (if sort-col
+                                   (sort-rows rows sort-col sort-asc)
+                                   rows))
+              (set cached-key key))
+            cached-rows))
         (term.with-raw (fn []
                          (var running true)
                          (while running
                            (set term-w (let [(_ c) (term.size)]
                                          (or c 80)))
-                           (clamp)
-                           (let [display-rows (if sort-col
-                                                  (sort-rows rows sort-col sort-asc)
-                                                  rows)
+                           (list-nav.clamp nav)
+                           (let [display-rows (sorted)
                                  display-headers (let [h {}]
                                                    (each [i hdr (ipairs headers)]
                                                      (if (= i sort-col)
@@ -97,69 +99,63 @@
                                                   (each [i w (ipairs widths)]
                                                     (tset dw i (math.max w (ansi.len (or (. display-headers i) "")))))
                                                   dw)]
-                             (term.write (.. "\r" (util.trunc (ansi.style (render-row display-headers display-widths opts.sep) ansi.bold opts.header-fg) term-w) ansi.screen.clear-right "\r
+                             (term.render-frame fcache (fn [push]
+                                                         (push (.. "\r" (util.trunc (ansi.style (render-row display-headers display-widths opts.sep) ansi.bold opts.header-fg) term-w) ansi.screen.clear-right "\r
 "))
-                             (for [row 1 height]
-                               (let [i (+ offset row)
-                                     r (. display-rows i)
-                                     is-cur (and opts.select (= i cursor))
-                                     is-sel (and opts.multi (. selected i))
-                                     mark (if opts.multi
-                                              (if is-sel
-                                                  (ansi.style "● " opts.selected-fg)
-                                                  "○ ")
-                                              "")]
-                                 (term.write (.. "\r" (if r
-                                                          (util.trunc (.. mark (if is-cur
-                                                                                   (ansi.style (render-row r display-widths opts.sep) ansi.bold opts.selected-fg)
-                                                                                   (render-row r display-widths opts.sep))) term-w)
-                                                          "") ansi.screen.clear-right "\r
+                                                         (for [row 1 height]
+                                                           (let [i (+ nav.offset row)
+                                                                 r (. display-rows i)
+                                                                 is-cur (and opts.select (= i nav.cursor))
+                                                                 is-sel (and opts.multi (. selected i))
+                                                                 mark (if opts.multi
+                                                                          (if is-sel
+                                                                              (ansi.style "● " opts.selected-fg)
+                                                                              "○ ")
+                                                                          "")]
+                                                             (push (.. "\r" (if r
+                                                                                (util.trunc (.. mark (if is-cur
+                                                                                                         (ansi.style (render-row r display-widths opts.sep) ansi.bold opts.selected-fg)
+                                                                                                         (render-row r display-widths opts.sep))) term-w)
+                                                                                "") ansi.screen.clear-right "\r
 "))))
-                             (term.cursor-up (+ height 1))
+                                                         (push (ansi.cursor.up (+ height 1)))))
                              (let [k (term.read-key)]
-                               (match k
-                                 (where (or "up" "k" "\016")) (set cursor (- cursor 1))
-                                 (where (or "down" "j" "\014")) (set cursor (+ cursor 1))
-                                 "g" (set cursor 1)
-                                 "G" (set cursor n)
-                                 "<" (set sort-col (if (not sort-col)
-                                                       ncols
-                                                       (if (= sort-col 1)
+                               (if (list-nav.handle-key nav k)
+                                   nil
+                                   (match k
+                                     "<" (set sort-col (if (not sort-col)
                                                            ncols
-                                                           (- sort-col 1))))
-                                 ">" (set sort-col (if (not sort-col)
-                                                       1
-                                                       (if (= sort-col ncols)
+                                                           (if (= sort-col 1)
+                                                               ncols
+                                                               (- sort-col 1))))
+                                     ">" (set sort-col (if (not sort-col)
                                                            1
-                                                           (+ sort-col 1))))
-                                 "s" (when sort-col
-                                       (set sort-asc (not sort-asc)))
-                                 "0" (do
-                                       (set sort-col nil)
-                                       (set sort-asc true))
-                                 " " (when opts.multi
-                                       (if (. selected cursor)
-                                           (tset selected cursor nil)
-                                           (tset selected cursor true)))
-                                 (where (or "\r" "\n")) (when opts.select
-                                                          (if (and opts.multi (next selected))
-                                                              (let [picks {}
-                                                                    idxs []]
-                                                                (each [idx _ (pairs selected)]
-                                                                  (table.insert idxs idx))
-                                                                (table.sort idxs)
-                                                                (each [_ idx (ipairs idxs)]
-                                                                  (table.insert picks (. display-rows idx)))
-                                                                (set result picks))
-                                                              (set result (. display-rows cursor)))
-                                                          (set running false))
-                                 "resize" (set term-w (let [(_ c) (term.size)]
-                                                        (or c 80)))
-                                 (where (or "q" "\003" "escape")) (set running false)))))))
-        (for [_ 1 (+ height 1)]
-          (term.write (.. "\r" ansi.screen.clear-right "\r
-")))
-        (term.cursor-up (+ height 1))
+                                                           (if (= sort-col ncols)
+                                                               1
+                                                               (+ sort-col 1))))
+                                     "s" (when sort-col
+                                           (set sort-asc (not sort-asc)))
+                                     "0" (do
+                                           (set sort-col nil)
+                                           (set sort-asc true))
+                                     " " (when opts.multi
+                                           (if (. selected nav.cursor)
+                                               (tset selected nav.cursor nil)
+                                               (tset selected nav.cursor true)))
+                                     (where (or "\r" "\n")) (when opts.select
+                                                              (if (and opts.multi (next selected))
+                                                                  (let [picks {}
+                                                                        idxs []]
+                                                                    (each [idx _ (pairs selected)]
+                                                                      (table.insert idxs idx))
+                                                                    (table.sort idxs)
+                                                                    (each [_ idx (ipairs idxs)]
+                                                                      (table.insert picks (. display-rows idx)))
+                                                                    (set result picks))
+                                                                  (set result (. display-rows nav.cursor)))
+                                                              (set running false))
+                                     (where (or "q" "\003" "escape")) (set running false))))))))
+        (term.clear-rows (+ height 1))
         result))))
 
 {:col-widths col-widths :render-row render-row :sort-rows sort-rows :tbl tbl}

@@ -19,11 +19,7 @@
   (posix.write (.. "\r" ansi.screen.clear-right ansi.cursor.show)))
 
 (fn spin [f user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [frames (or (. spinners opts.spinner) spinners.dots)
           n (# frames)
           interval (/ opts.interval 1000)
@@ -53,11 +49,7 @@
       result)))
 
 (fn multi-spin [tasks user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [frames (or (. spinners opts.spinner) spinners.dots)
           nf (# frames)
           interval (/ opts.interval 1000)

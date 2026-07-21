@@ -7,11 +7,7 @@
 (local default-opts {:fg ansi.fg.cyan :label ""})
 
 (fn sparkline [data user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (if (or (not data) (= (# data) 0))
         ""
         (let [lo (accumulate [m (. data 1) _ v (ipairs data)] (math.min m v))

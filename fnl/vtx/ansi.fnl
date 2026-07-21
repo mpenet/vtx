@@ -113,7 +113,10 @@
                :home "\027[H"})
 
 (fn strip [s]
-  (s:gsub "\027%[[%d;]*[A-Za-z]" ""))
+  (let [csi-stripped (s:gsub "\027%[[%d;]*[A-Za-z]" "")
+        osc-bel-stripped (csi-stripped:gsub "\027%].-\a" "")
+        osc-st-stripped (osc-bel-stripped:gsub "\027%].-\027\\" "")]
+osc-st-stripped))
 
 (local wide-ranges [[4352 4447]
                     [11904 13311]
@@ -145,16 +148,30 @@
   result)
 
 (fn utf8-codepoint [s i]
-  (let [b (s:byte i)]
-    (if (< b 128)
+  (let [slen (# s)
+        b (s:byte i)]
+    (if (not b)
+        (values 65533 1)
+        (< b 128)
         (values b 1)
         (< b 224)
-        (values (+ (* (- b 192) 64) (- (s:byte (+ i 1)) 128)) 2)
+        (if (> (+ i 1) slen)
+            (values 65533 1)
+            (values (+ (* (- b 192) 64) (- (s:byte (+ i 1)) 128)) 2))
         (< b 240)
-        (values (+ (* (- b 224) 4096) (* (- (s:byte (+ i 1)) 128) 64) (- (s:byte (+ i 2)) 128)) 3)
-        (values (+ (* (- b 240) 262144) (* (- (s:byte (+ i 1)) 128) 4096) (* (- (s:byte (+ i 2)) 128) 64) (- (s:byte (+ i 3)) 128)) 4))))
+        (if (> (+ i 2) slen)
+            (values 65533 1)
+            (values (+ (* (- b 224) 4096) (* (- (s:byte (+ i 1)) 128) 64) (- (s:byte (+ i 2)) 128)) 3))
+        (if (> (+ i 3) slen)
+            (values 65533 1)
+            (values (+ (* (- b 240) 262144) (* (- (s:byte (+ i 1)) 128) 4096) (* (- (s:byte (+ i 2)) 128) 64) (- (s:byte (+ i 3)) 128)) 4)))))
 
-(fn codepoint-width [cp]
+(local (native-ok native) (pcall require "vtx.posix_native"))
+
+(local wcwidth-native (when (and native-ok native.wcwidth)
+                        native.wcwidth))
+
+(fn codepoint-width-fallback [cp]
   (if (< cp 32)
       0
       (< cp 127)
@@ -173,18 +190,41 @@
       2
       1))
 
+(fn codepoint-width [cp]
+  (if wcwidth-native
+      (let [w (wcwidth-native cp)]
+        (if (< w 0)
+            0
+            w))
+      (codepoint-width-fallback cp)))
+
 (local no-color (or (os.getenv "NO_COLOR") (os.getenv "NO_COLOUR")))
 
+(local len-cache {})
+
+(var len-cache-size 0)
+
+(local len-cache-max 4096)
+
 (fn len [s]
-  (let [s2 (strip s)
-        slen (# s2)]
-    (var i 1)
-    (var w 0)
-    (while (<= i slen)
-      (let [(cp char-len) (utf8-codepoint s2 i)]
-        (set w (+ w (codepoint-width cp)))
-        (set i (+ i char-len))))
-    w))
+  (let [cached (. len-cache s)]
+    (if cached
+        cached
+        (let [s2 (strip s)
+              slen (# s2)]
+          (var i 1)
+          (var w 0)
+          (while (<= i slen)
+            (let [(cp char-len) (utf8-codepoint s2 i)]
+              (set w (+ w (codepoint-width cp)))
+              (set i (+ i char-len))))
+          (when (>= len-cache-size len-cache-max)
+            (each [k _ (pairs len-cache)]
+              (tset len-cache k nil))
+            (set len-cache-size 0))
+          (tset len-cache s w)
+          (set len-cache-size (+ len-cache-size 1))
+          w))))
 
 (fn style [text & attrs]
   (if (or no-color (= (# attrs) 0))

@@ -98,11 +98,7 @@
     (.. "\r" (ansi.style (.. "lines " (+ offset 1) "-" last "/" dn " " pct match-info " - q:quit /:search g/G l:ln# w:wrap" ln-hint wrap-hint digit-hint) ansi.reverse) ansi.screen.clear-right)))
 
 (fn pager [text user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [lines (util.split-lines text)
           (term-rows _) (term.size)]
       (var height (or opts.height (- (or term-rows 24) 1)))
@@ -250,13 +246,9 @@
                                                 (set height (- (or tr 24) 1))))
                                    (where (or "q" "\003")) (set running false)
                                    _ (when (and (= (type k) "string") (= (# k) 1) (string.match k "%d"))
-                                       (set digit-buf (.. digit-buf k)))))))
-                         {:alt-screen opts.alt-screen})))
+                                       (set digit-buf (.. digit-buf k))))))))) {:alt-screen opts.alt-screen})
       (when (not opts.alt-screen)
-        (for [_ 1 (+ height 1)]
-          (term.write (.. "\r" ansi.screen.clear-right "\r
-")))
-        (term.cursor-up (+ height 1))))))
+        (term.clear-rows (+ height 1))))))
 
 {:find-matches find-matches
  :highlight-search highlight-search

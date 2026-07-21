@@ -25,11 +25,7 @@
     (.. prompt-str "  " yes-str "  " no-str)))
 
 (fn confirm [prompt user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (var selected (if (= opts.default false)
                       false
                       true))

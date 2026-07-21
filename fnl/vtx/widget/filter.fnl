@@ -68,129 +68,120 @@
               (table.insert results {:i i :item item :positions positions})))))
     results))
 
+(local list-nav (require "vtx.list-nav"))
+
 (fn filter [items user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)
+        nav (list-nav.make-state 0 opts.height)
+        fcache (term.make-frame-cache)]
     (var query "")
-    (var cursor 1)
-    (var offset 0)
     (var selected {})
     (var result nil)
     (var matches (filter-items items query opts.fuzzy))
     (var term-w (let [(_ c) (term.size)]
                   (or c 80)))
-    (fn clamp-cursor []
-      (let [n (# matches)]
-        (set cursor (math.max 1 (math.min cursor n)))))
+    (var cached-merged nil)
+    (var cached-matches-id nil)
+    (fn compute-display []
+      (if (and (= query "") (> (# opts.recent) 0))
+          (if (= cached-matches-id matches)
+              cached-merged
+              (let [seen {}
+                    merged []]
+                (each [_ m (ipairs (filter-items opts.recent "" false))]
+                  (tset seen m.item true)
+                  (table.insert merged m))
+                (each [_ m (ipairs matches)]
+                  (when (not (. seen m.item))
+                    (table.insert merged m)))
+                (set cached-merged merged)
+                (set cached-matches-id matches)
+                merged))
+          matches))
+    (fn reset-search [new-query]
+      (set query new-query)
+      (set matches (filter-items items new-query opts.fuzzy))
+      (set nav.cursor 1)
+      (set nav.offset 0))
     (term.with-raw (fn []
                      (var running true)
                      (while running
-                       (clamp-cursor)
                        (set term-w (let [(_ c) (term.size)]
                                      (or c 80)))
-                       (let [display-matches (if (and (= query "") (> (# opts.recent) 0))
-                                                 (let [seen {}
-                                                       result []]
-                                                   (each [_ m (ipairs (filter-items opts.recent "" false))]
-                                                     (tset seen m.item true)
-                                                     (table.insert result m))
-                                                   (each [_ m (ipairs matches)]
-                                                     (when (not (. seen m.item))
-                                                       (table.insert result m)))
-                                                   result)
-                                                 matches)
-                             n (# display-matches)
-                             height (math.min opts.height n)]
-                         (when (and (> n 0) (< cursor (+ offset 1)))
-                           (set offset (- cursor 1)))
-                         (when (and (> n 0) (> cursor (+ offset height)))
-                           (set offset (- cursor height)))
-                         (let [count-str (if (= query "")
-                                             ""
-                                             (ansi.style (.. " " (# matches) "/" (# items)) ansi.dim))]
-                           (term.write (.. "\r" (ansi.style opts.prompt opts.prompt-fg) query count-str ansi.screen.clear-right "\r
+                       (let [display-matches (compute-display)]
+                         (list-nav.set-n nav (# display-matches))
+                         (list-nav.clamp nav)
+                         (term.render-frame fcache (fn [push]
+                                                     (let [count-str (if (= query "")
+                                                                         ""
+                                                                         (ansi.style (.. " " (# matches) "/" (# items)) ansi.dim))]
+                                                       (push (.. "\r" (ansi.style opts.prompt opts.prompt-fg) query count-str ansi.screen.clear-right "\r
 ")))
-                         (for [row 1 opts.height]
-                           (let [i (+ offset row)
-                                 m (. display-matches i)]
-                             (term.write (.. "\r" (if m
-                                                      (let [is-cursor (= i cursor)
-                                                            is-selected (. selected m.i)
-                                                            cursor-width (ansi.len opts.cursor)
-                                                            multi-mark (if opts.multi
-                                                                           (if is-selected
-                                                                               (ansi.style "● " opts.selected-fg)
-                                                                               (ansi.style "○ " opts.unselected-fg))
-                                                                           "")
-                                                            prefix (if is-cursor
-                                                                       (ansi.style opts.cursor opts.cursor-fg)
-                                                                       (util.string-rep " " cursor-width))
-                                                            mark-w (if opts.multi
-                                                                       2
-                                                                       0)
-                                                            max-item-w (- term-w cursor-width mark-w)
-                                                            raw-text (util.trunc (if opts.render
-                                                                                     (opts.render m.item m.positions)
-                                                                                     (highlight m.item m.positions opts.match-fg)) max-item-w)
-                                                            text (if is-cursor
-                                                                     (ansi.style (.. multi-mark raw-text) opts.selected-attr opts.selected-fg)
-                                                                     (.. multi-mark raw-text))]
-                                                        (.. prefix text))
-                                                      "") ansi.screen.clear-right "\r
+                                                     (for [row 1 opts.height]
+                                                       (let [i (+ nav.offset row)
+                                                             m (. display-matches i)]
+                                                         (push (.. "\r" (if m
+                                                                            (let [is-cursor (= i nav.cursor)
+                                                                                  is-selected (. selected m.i)
+                                                                                  cursor-width (ansi.len opts.cursor)
+                                                                                  multi-mark (if opts.multi
+                                                                                                 (if is-selected
+                                                                                                     (ansi.style "● " opts.selected-fg)
+                                                                                                     (ansi.style "○ " opts.unselected-fg))
+                                                                                                 "")
+                                                                                  prefix (if is-cursor
+                                                                                             (ansi.style opts.cursor opts.cursor-fg)
+                                                                                             (util.string-rep " " cursor-width))
+                                                                                  mark-w (if opts.multi
+                                                                                             2
+                                                                                             0)
+                                                                                  max-item-w (- term-w cursor-width mark-w)
+                                                                                  raw-text (util.trunc (if opts.render
+                                                                                                           (opts.render m.item m.positions)
+                                                                                                           (highlight m.item m.positions opts.match-fg)) max-item-w)
+                                                                                  text (if is-cursor
+                                                                                           (ansi.style (.. multi-mark raw-text) opts.selected-attr opts.selected-fg)
+                                                                                           (.. multi-mark raw-text))]
+                                                                              (.. prefix text))
+                                                                            "") ansi.screen.clear-right "\r
 "))))
-                         (term.cursor-up (+ opts.height 1))
-                         (term.cursor-col (+ (ansi.len opts.prompt) (ansi.len query) 1))
+                                                     (push (ansi.cursor.up (+ opts.height 1)))
+                                                     (push (ansi.cursor.col (+ (ansi.len opts.prompt) (ansi.len query) 1)))))
                          (let [k (term.read-key)]
-                           (match k
-                             (where (or "up" "\016")) (set cursor (math.max 1 (- cursor 1)))
-                             (where (or "down" "\014")) (set cursor (math.min (# matches) (+ cursor 1)))
-                             "\t" (when (and opts.multi (> (# matches) 0))
-                                    (let [m (. matches cursor)]
-                                      (when m
-                                        (if (. selected m.i)
-                                            (tset selected m.i nil)
-                                            (tset selected m.i true))))
-                                    (set cursor (math.min (# matches) (+ cursor 1))))
-                             (where (or "\r" "\n")) (do
-                                                      (if (and opts.multi (next selected))
-                                                          (let [picks {}
-                                                                idxs {}]
-                                                            (each [orig-i _ (pairs selected)]
-                                                              (table.insert idxs orig-i))
-                                                            (table.sort idxs)
-                                                            (each [_ orig-i (ipairs idxs)]
-                                                              (table.insert picks (. items orig-i)))
-                                                            (set result picks))
-                                                          (let [m (. matches cursor)]
-                                                            (set result (when m
-                                                                          [m.item]))))
-                                                      (set running false))
-                             (where (or "\003" "\027")) (set running false)
-                             (where (or "\b" "\127")) (when (> (# query) 0)
-                                                        (set query (query:sub 1 (- (# query) 1)))
-                                                        (set matches (filter-items items query opts.fuzzy))
-                                                        (set cursor 1)
-                                                        (set offset 0))
-                             "\021" (do
-                                      (set query "")
-                                      (set matches (filter-items items query opts.fuzzy))
-                                      (set cursor 1)
-                                      (set offset 0))
-                             "resize" (set term-w (let [(_ c) (term.size)]
-                                                    (or c 80)))
-                             _ (when (and (= (type k) "string") (= (# k) 1) (>= (string.byte k) 32))
-                                 (set query (.. query k))
-                                 (set matches (filter-items items query opts.fuzzy))
-                                 (set cursor 1)
-                                 (set offset 0))))))) {:alt-screen opts.alt-screen})
+                           (if (list-nav.handle-key-typable nav k)
+                               nil
+                               (match k
+                                 "\t" (when (and opts.multi (> (# matches) 0))
+                                        (let [m (. matches nav.cursor)]
+                                          (when m
+                                            (if (. selected m.i)
+                                                (tset selected m.i nil)
+                                                (tset selected m.i true))))
+                                        (list-nav.move nav 1))
+                                 (where (or "\r" "\n")) (do
+                                                          (if (and opts.multi (next selected))
+                                                              (let [picks {}
+                                                                    idxs {}]
+                                                                (each [orig-i _ (pairs selected)]
+                                                                  (table.insert idxs orig-i))
+                                                                (table.sort idxs)
+                                                                (each [_ orig-i (ipairs idxs)]
+                                                                  (table.insert picks (. items orig-i)))
+                                                                (set result picks))
+                                                              (let [m (. matches nav.cursor)]
+                                                                (set result (when m
+                                                                              [m.item]))))
+                                                          (set running false))
+                                 (where (or "\003" "\027")) (set running false)
+                                 (where (or "\b" "\127")) (when (> (# query) 0)
+                                                            (reset-search (query:sub 1 (- (# query) 1))))
+                                 "\021" (reset-search "")
+                                 "resize" (set term-w (let [(_ c) (term.size)]
+                                                        (or c 80)))
+                                 _ (when (and (= (type k) "string") (= (# k) 1) (>= (string.byte k) 32))
+                                     (reset-search (.. query k))))))))) {:alt-screen opts.alt-screen})
     (when (not opts.alt-screen)
-      (for [_ 1 (+ opts.height 1)]
-        (term.write (.. "\r" ansi.screen.clear-right "\r
-")))
-      (term.cursor-up (+ opts.height 1)))
+      (term.clear-rows (+ opts.height 1)))
     result))
 
 {:filter filter :filter-items filter-items :fuzzy-match fuzzy-match}

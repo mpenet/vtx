@@ -33,11 +33,10 @@
 (local default-opts {:label-fg ansi.fg.cyan})
 
 (fn form [fields user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
+    (fn write-label [label]
+      (when label
+        (term.writeln (ansi.style label ansi.bold opts.label-fg))))
     (var result {})
     (var aborted false)
     (each [_ field (ipairs fields)]
@@ -49,50 +48,39 @@
                 key (or field.key field.label (tostring field.type))
                 val (match field.type
                       "input" (do
-                                (when field.label
-                                  (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                (write-label field.label)
                                 (input-m.input field-opts))
                       "password" (do
-                                   (when field.label
-                                     (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                   (write-label field.label)
                                    (password-m.password field-opts))
                       "confirm" (confirm-m.confirm (or field.label "Continue?") field-opts)
                       "write" (do
-                                (when field.label
-                                  (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                (write-label field.label)
                                 (write-m.write field-opts))
                       "num-input" (do
-                                    (when field.label
-                                      (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                    (write-label field.label)
                                     (num-input-m.num-input field-opts))
                       "choose" (do
-                                 (when field.label
-                                   (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                 (write-label field.label)
                                  (choose-m.choose items field-opts))
                       "radio" (do
-                                (when field.label
-                                  (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                (write-label field.label)
                                 (radio-m.radio items field-opts))
                       "checklist" (do
-                                    (when field.label
-                                      (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                    (write-label field.label)
                                     (checklist-m.checklist items field-opts))
                       "filter" (do
-                                 (when field.label
-                                   (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                 (write-label field.label)
                                  (filter-m.filter items field-opts))
                       "slider" (do
-                                 (when field.label
-                                   (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                 (write-label field.label)
                                  (slider-m.slider field-opts))
                       "autocomplete" (do
-                                       (when field.label
-                                         (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                                       (write-label field.label)
                                        (autocomplete-m.autocomplete items field-opts))
                       "file" (file-picker-m.file-picker field-opts)
                       "date" (do
-                               (when field.label
-                                 (term.writeln (ansi.style field.label ansi.bold opts.label-fg)))
+                               (write-label field.label)
                                (date-picker-m.date-picker field-opts))
                       _ (error (.. "vtx.form: unknown field type " (tostring field.type))))]
             (if (= val nil)

@@ -6,8 +6,6 @@
 
 (local faith (require "faith"))
 
-;;; vbox
-
 (fn test-vbox-two-items []
   (let [r (layout-m.vbox ["a" "b"])
         lines (util.split-lines r)]
@@ -49,15 +47,16 @@
     (faith.= 3 (# lines))))
 
 (fn test-vbox-multiline-items []
-  (let [r (layout-m.vbox ["a\nb" "c\nd"])
+  (let [r (layout-m.vbox ["a
+b"
+                          "c
+d"])
         lines (util.split-lines r)]
     (faith.= 4 (# lines))
     (faith.= "a" (. lines 1))
     (faith.= "b" (. lines 2))
     (faith.= "c" (. lines 3))
     (faith.= "d" (. lines 4))))
-
-;;; hbox
 
 (fn test-hbox-two-single-line []
   (let [r (layout-m.hbox ["abc" "xyz"])
@@ -80,38 +79,45 @@
     (faith.= "abcd" r)))
 
 (fn test-hbox-pads-shorter-lines []
-  ; left col has lines "aa" (w=2) and "b" (w=1) — should pad "b" to "b "
-  (let [r (layout-m.hbox ["aa\nb" "xy\nzw"])
+  (let [r (layout-m.hbox ["aa
+b"
+                          "xy
+zw"])
         lines (util.split-lines r)]
     (faith.= 2 (# lines))
     (faith.= "aaxy" (. lines 1))
     (faith.= "b zw" (. lines 2))))
 
 (fn test-hbox-height-top []
-  ; left col: 3 lines, right col: 1 line — top alignment: right line appears at row 1
-  (let [r (layout-m.hbox ["a\nb\nc" "X"] {:valign "top"})
+  (let [r (layout-m.hbox ["a
+b
+c"
+                          "X"] {:valign "top"})
         lines (util.split-lines r)]
     (faith.= 3 (# lines))
     (faith.is (: (. lines 1) "find" "X" 1 true))
     (faith.= false (not (not (: (. lines 2) "find" "X" 1 true))))))
 
 (fn test-hbox-height-bottom []
-  ; left col: 3 lines, right col: 1 line — bottom alignment: right line appears at row 3
-  (let [r (layout-m.hbox ["a\nb\nc" "X"] {:valign "bottom"})
+  (let [r (layout-m.hbox ["a
+b
+c"
+                          "X"] {:valign "bottom"})
         lines (util.split-lines r)]
     (faith.= 3 (# lines))
     (faith.is (: (. lines 3) "find" "X" 1 true))))
 
 (fn test-hbox-height-center []
-  ; left col: 4 lines, right col: 2 lines — center: right lines at rows 2-3
-  (let [r (layout-m.hbox ["a\nb\nc\nd" "X\nY"] {:valign "center"})
+  (let [nl (string.char 10)
+        left (.. "a" nl "b" nl "c" nl "d")
+        right (.. "X" nl "Y")
+        r (layout-m.hbox [left right] {:valign "center"})
         lines (util.split-lines r)]
     (faith.= 4 (# lines))
     (faith.is (: (. lines 2) "find" "X" 1 true))
     (faith.is (: (. lines 3) "find" "Y" 1 true))))
 
 (fn test-hbox-ansi-width []
-  ; items with ANSI styling — width measured correctly, padding correct
   (let [styled (ansi.style "hi" ansi.bold)
         r (layout-m.hbox [styled "ab"])
         lines (util.split-lines r)]
@@ -123,13 +129,78 @@
     (faith.= "a b c" r)))
 
 (fn test-hbox-equal-height []
-  (let [r (layout-m.hbox ["a\nb" "c\nd"])
+  (let [r (layout-m.hbox ["a
+b"
+                          "c
+d"])
         lines (util.split-lines r)]
     (faith.= 2 (# lines))
     (faith.= "ac" (. lines 1))
     (faith.= "bd" (. lines 2))))
 
-{:test-hbox-ansi-width test-hbox-ansi-width
+(fn test-grid-2x2 []
+  (let [r (layout-m.grid ["a" "b" "c" "d"] {:cols 2 :gap-h 0})
+        lines (util.split-lines r)]
+    (faith.= 2 (# lines))
+    (faith.= "ab" (. lines 1))
+    (faith.= "cd" (. lines 2))))
+
+(fn test-grid-gap-h []
+  (let [r (layout-m.grid ["a" "b" "c" "d"] {:cols 2 :gap-h 2})
+        lines (util.split-lines r)]
+    (faith.= "a  b" (. lines 1))
+    (faith.= "c  d" (. lines 2))))
+
+(fn test-grid-uneven-last-row []
+  (let [r (layout-m.grid ["a" "b" "c" "d" "e"] {:cols 3 :gap-h 1})
+        lines (util.split-lines r)]
+    (faith.= 2 (# lines))
+    (faith.= "a b c" (. lines 1))
+    (faith.= "d" (: (. lines 2) "sub" 1 1))
+    (faith.= "e" (: (. lines 2) "sub" 3 3))))
+
+(fn test-grid-column-widths []
+  (let [r (layout-m.grid ["short" "muchlonger" "x" "y"] {:cols 2 :gap-h 1})
+        lines (util.split-lines r)]
+    (faith.= "short muchlonger" (. lines 1))
+    (faith.= "x     y         " (. lines 2))))
+
+(fn test-grid-gap-v []
+  (let [r (layout-m.grid ["a" "b" "c" "d"] {:cols 2 :gap-h 0 :gap-v 1})
+        lines (util.split-lines r)]
+    (faith.= 3 (# lines))
+    (faith.= "ab" (. lines 1))
+    (faith.= "" (. lines 2))
+    (faith.= "cd" (. lines 3))))
+
+(fn test-grid-multiline-cells []
+  (let [nl (string.char 10)
+        ab (.. "a" nl "b")
+        ef (.. "e" nl "f")
+        r (layout-m.grid [ab "c" "d" ef] {:cols 2 :gap-h 1})
+        lines (util.split-lines r)]
+    (faith.= 4 (# lines))
+    (faith.= "a c" (. lines 1))
+    (faith.= "b  " (. lines 2))
+    (faith.= "d e" (. lines 3))
+    (faith.= "  f" (. lines 4))))
+
+(fn test-grid-single-item []
+  (faith.= "hello" (layout-m.grid ["hello"] {:cols 1})))
+
+(fn test-grid-defaults []
+  (let [r (layout-m.grid ["a" "b"])]
+    (faith.= "a b" r)))
+
+{:test-grid-2x2 test-grid-2x2
+ :test-grid-column-widths test-grid-column-widths
+ :test-grid-defaults test-grid-defaults
+ :test-grid-gap-h test-grid-gap-h
+ :test-grid-gap-v test-grid-gap-v
+ :test-grid-multiline-cells test-grid-multiline-cells
+ :test-grid-single-item test-grid-single-item
+ :test-grid-uneven-last-row test-grid-uneven-last-row
+ :test-hbox-ansi-width test-hbox-ansi-width
  :test-hbox-empty test-hbox-empty
  :test-hbox-equal-height test-hbox-equal-height
  :test-hbox-gap test-hbox-gap

@@ -4,8 +4,13 @@
 
 (local theme (require "vtx.theme"))
 
+(local list-nav (require "vtx.list-nav"))
+
+(local keymap (require "vtx.keymap"))
+
 (local default-opts {:cursor-fg ansi.fg.cyan
                      :height nil
+                     :keymap nil
                      :prompt nil
                      :selected-fg ansi.fg.green
                      :unselected-fg ansi.fg.white
@@ -25,15 +30,11 @@
     (.. bullet " " text)))
 
 (fn radio [items user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [n (# items)
-          height (math.min (or opts.height n) n)]
-      (var cursor 1)
-      (var offset 0)
+          height (math.min (or opts.height n) n)
+          nav (list-nav.make-state n height)
+          fcache (term.make-frame-cache)]
       (var selected nil)
       (var result nil)
       (when opts.value
@@ -43,35 +44,40 @@
       (term.with-raw (fn []
                        (var running true)
                        (while running
-                         (when (< cursor (+ offset 1))
-                           (set offset (- cursor 1)))
-                         (when (> cursor (+ offset height))
-                           (set offset (- cursor height)))
-                         (when opts.prompt
-                           (term.write (.. "\r" (ansi.style opts.prompt ansi.bold) ansi.screen.clear-right "\r\n")))
-                         (for [row 1 height]
-                           (let [i (+ offset row)]
-                             (term.write (.. "\r" (if (<= i n)
-                                                      (render-item (. items i) i cursor selected opts)
-                                                      "") ansi.screen.clear-right "\r\n"))))
-                         (let [rows-drawn (+ (if opts.prompt 1 0) height)]
-                           (term.cursor-up rows-drawn))
-                         (let [k (term.read-key)]
-                           (match k
-                             (where (or "up" "k" "\016")) (set cursor (math.max 1 (- cursor 1)))
-                             (where (or "down" "j" "\014")) (set cursor (math.min n (+ cursor 1)))
-                             "g" (set cursor 1)
-                             "G" (set cursor n)
-                             " " (set selected cursor)
-                             (where (or "\r" "\n")) (do
-                                                      (set result (. items (or selected cursor)))
-                                                      (set running false))
-                             (where (or "q" "\003" "escape")) (set running false)
-                             "resize" nil)))))
-      (let [total-rows (+ (if opts.prompt 1 0) height)]
-        (for [_ 1 total-rows]
-          (term.write (.. "\r" ansi.screen.clear-right "\r\n")))
-        (term.cursor-up total-rows))
+                         (list-nav.clamp nav)
+                         (let [rows-drawn (+ (if opts.prompt
+                                                 1
+                                                 0) height)]
+                           (term.render-frame fcache (fn [push]
+                                                       (when opts.prompt
+                                                         (push (.. "\r" (ansi.style opts.prompt ansi.bold) ansi.screen.clear-right "\r
+")))
+                                                       (list-nav.each-visible nav (fn [_row i _is-cursor]
+                                                                                    (push (.. "\r" (if (<= i n)
+                                                                                                       (render-item (. items i) i nav.cursor selected opts)
+                                                                                                       "") ansi.screen.clear-right "\r
+"))))
+                                                       (push (ansi.cursor.up rows-drawn)))))
+                         (let [km (keymap.merge keymap.nav-defaults opts.keymap)
+                               k (term.read-key)
+                               action (keymap.lookup km k)]
+                           (match action
+                             "up" (list-nav.move nav -1)
+                             "down" (list-nav.move nav 1)
+                             "top" (list-nav.goto nav 1)
+                             "bottom" (list-nav.goto nav n)
+                             "page-up" (list-nav.page-up nav)
+                             "page-down" (list-nav.page-down nav)
+                             "toggle" (set selected nav.cursor)
+                             "confirm" (do
+                                         (set result (. items (or selected nav.cursor)))
+                                         (set running false))
+                             "cancel" (set running false)
+                             _ nil)))))
+      (let [total-rows (+ (if opts.prompt
+                              1
+                              0) height)]
+        (term.clear-rows total-rows))
       result)))
 
 {:radio radio :render-item render-item}

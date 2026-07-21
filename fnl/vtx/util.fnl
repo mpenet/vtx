@@ -1,10 +1,25 @@
 (local ansi (require "vtx.ansi"))
 
-(fn string-rep [s n]
-  (let [t {}]
-    (for [_ 1 n]
-      (table.insert t s))
-    (table.concat t)))
+(local string-rep string.rep)
+
+(fn utf8-codepoint-start [s pos]
+  (var p pos)
+  (while (and (> p 1) (let [b (string.byte s p)]
+                        (and (>= b 128) (<= b 191))))
+    (set p (- p 1)))
+  p)
+
+(fn utf8-next-pos [s pos]
+  (let [b (string.byte s (+ pos 1))]
+    (if (not b)
+        pos
+        (< b 192)
+        (+ pos 1)
+        (< b 224)
+        (+ pos 2)
+        (< b 240)
+        (+ pos 3)
+        (+ pos 4))))
 
 (fn trunc [s max-w]
   (if (<= (ansi.len s) max-w)
@@ -53,7 +68,10 @@
   (let [lines {}
         pat (.. "[^" (string.char 10) "]*")]
     (each [line (s:gmatch pat)]
-      (table.insert lines line))
+      (let [stripped (if (and (> (# line) 0) (= (line:sub -1) "\r"))
+                         (line:sub 1 -2)
+                         line)]
+        (table.insert lines stripped)))
     (when (and (> (# lines) 0) (= (. lines (# lines)) ""))
       (table.remove lines))
     (if (= (# lines) 0)
@@ -96,4 +114,6 @@
  :split-lines split-lines
  :string-rep string-rep
  :trunc trunc
+ :utf8-codepoint-start utf8-codepoint-start
+ :utf8-next-pos utf8-next-pos
  :wrap wrap}

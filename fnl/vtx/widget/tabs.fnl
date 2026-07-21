@@ -30,11 +30,7 @@
     (.. row0 "\n" row1 "\n" row2)))
 
 (fn tabs [tab-list user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [n (# tab-list)
           max-ch (accumulate [m 0 _ tab (ipairs tab-list)] (math.max m (# (util.split-lines (or tab.content "")))))]
       (var active 1)
@@ -75,10 +71,7 @@
                                _ (let [d (tonumber k)]
                                    (when (and d (>= d 1) (<= d n))
                                      (set active d)))))))))
-      (for [_ 1 (+ max-ch 4)]
-        (term.write (.. "\r" ansi.screen.clear-right "\r
-")))
-      (term.cursor-up (+ max-ch 4))
+      (term.clear-rows (+ max-ch 4))
       result)))
 
 {:render-tab-bar render-tab-bar :tabs tabs}

@@ -540,4 +540,41 @@ world" {:border "rounded" :padding 1})]
 
 (vtx.set-theme {})
 
+(section "grid — auto-sized cells")
+
+(print (vtx.grid ["ID"
+                  "Name"
+                  "Status"
+                  "1"
+                  "Alice"
+                  (ansi.style "active" ansi.fg.green)
+                  "22"
+                  "Bob"
+                  (ansi.style "idle" ansi.fg.yellow)
+                  "333"
+                  "Chloe"
+                  (ansi.style "offline" ansi.fg.red)] {:cols 3 :gap-h 2}))
+
+(section "grouped namespaces — vtx.widgets, vtx.styles, vtx.gradients, vtx.themes-api")
+
+(print (vtx.styles.style "Access via sub-tables" {:border "rounded" :fg ansi.fg.cyan :padding 1}))
+
+(print (vtx.gradients.text "Same fn, namespaced access" ["#00ffff" "#ff00ff" "#ffff00"]))
+
+(print (ansi.style (.. "themes available via themes-api.built-in: " (table.concat (icollect [k _ (pairs vtx.themes-api.built-in)] k) ", ")) ansi.dim))
+
+(section "keymap — user-overridable keys (radio with custom bindings)")
+
+(print (ansi.style "Try W/S instead of arrows (or up/down still works)" ansi.dim))
+
+(let [pick (vtx.radio ["Small" "Medium" "Large"] {:keymap
+                                                  {:cancel ["q" "\003" "escape"]
+                                                   :confirm ["\r" "\n"]
+                                                   :down ["down" "\014" "s" "S"]
+                                                   :toggle [" "]
+                                                   :up ["up" "\016" "w" "W"]}
+                                                  :prompt
+                                                  "Pick size:"})]
+  (show "radio+keymap" pick))
+
 (print (.. "\n" (vtx.style "All done!" {:bold true :border "rounded" :fg ansi.fg.green :padding 1})))

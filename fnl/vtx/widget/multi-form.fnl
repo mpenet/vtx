@@ -52,11 +52,7 @@
     (.. label value)))
 
 (fn multi-form [fields user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [n (# fields)
           states (icollect [_ f (ipairs fields)] (init-state f))]
       (var active 1)
@@ -84,7 +80,7 @@
                              _ (let [fo (or field.opts {})
                                      new-state (match field.type
                                                  (where (or "input" "password")) (match k
-                                                                                   "\127" {:value (state.value:sub 1 (math.max 0 (- (# state.value) 1)))}
+                                                                                   (where (or "\b" "\127")) {:value (state.value:sub 1 (math.max 0 (- (# state.value) 1)))}
                                                                                    (where c (and (= (# c) 1) (>= (c:byte 1) 32))) {:value (.. state.value c)}
                                                                                    _ state)
                                                  "confirm" (match k
@@ -100,10 +96,7 @@
                                                  _ state)]
                                  (each [key val (pairs new-state)]
                                    (tset (. states active) key val))))))))
-      (for [_ 1 n]
-        (term.write (.. "\r" ansi.screen.clear-right "\r
-")))
-      (term.cursor-up n)
+      (term.clear-rows n)
       result)))
 
 {:init-state init-state :multi-form multi-form :render-field render-field}

@@ -2,12 +2,12 @@
 
 (local (native-ok native) (pcall require "vtx.posix_native"))
 
-(local native (if native-ok
-                  native
-                  nil))
+(local native (when native-ok
+                native))
 
 (when native
-  (native.setup_winch))
+  (native.setup_winch)
+  (native.install_fatal_handlers))
 
 (fn tty-open []
   (when (not tty-in)
@@ -20,25 +20,36 @@
     (set tty-in nil)))
 
 (fn stty-save []
-  (let [h (io.popen "stty -g < /dev/tty 2>/dev/null")]
-    (when h
-      (let [out (h:read "*l")]
-        (h:close)
-        out))))
+  (if native
+      (native.stty_save)
+      (let [h (io.popen "stty -g < /dev/tty 2>/dev/null")]
+        (when h
+          (let [out (h:read "*l")]
+            (h:close)
+            out)))))
 
 (fn stty-restore [saved]
-  (when (and saved (= (type saved) "string") (saved:match "^[%w:=/.-]+$"))
-    (os.execute (.. "stty " saved " < /dev/tty 2>/dev/null"))))
+  (if native
+      (when saved
+        (native.stty_restore saved))
+      (when (and saved (= (type saved) "string") (saved:match "^[%w:=/.-]+$"))
+        (os.execute (.. "stty " saved " < /dev/tty 2>/dev/null")))))
 
 (fn sleep [seconds]
   (if native
       (native.sleep seconds)
-      (let [h (io.popen (.. "sleep " seconds " 2>/dev/null"))]
-        (when h
-          (h:close)))))
+      (if (< seconds 0.5)
+          (let [target (+ (os.clock) seconds)]
+            (while (< (os.clock) target)
+              nil))
+          (let [h (io.popen (.. "sleep " seconds " 2>/dev/null"))]
+            (when h
+              (h:close))))))
 
 (fn raw-mode-enter []
-  (os.execute "stty raw -echo -isig min 1 time 1 < /dev/tty 2>/dev/null"))
+  (if native
+      (native.raw_mode_enter)
+      (os.execute "stty raw -echo -isig min 1 time 1 < /dev/tty 2>/dev/null")))
 
 (fn read-byte []
   (let [f (tty-open)]
@@ -55,14 +66,16 @@
   (io.stdout:flush))
 
 (fn term-size []
-  (let [h (io.popen "stty size < /dev/tty 2>/dev/null")]
-    (when h
-      (let [out (h:read "*l")]
-        (h:close)
-        (when out
-          (let [(rows cols) (out:match "(%d+) (%d+)")]
-            (when (and rows cols)
-              (values (tonumber rows) (tonumber cols)))))))))
+  (if native
+      (native.term_size)
+      (let [h (io.popen "stty size < /dev/tty 2>/dev/null")]
+        (when h
+          (let [out (h:read "*l")]
+            (h:close)
+            (when out
+              (let [(rows cols) (out:match "(%d+) (%d+)")]
+                (when (and rows cols)
+                  (values (tonumber rows) (tonumber cols))))))))))
 
 {:STDERR_FILENO 2
  :STDIN_FILENO 0

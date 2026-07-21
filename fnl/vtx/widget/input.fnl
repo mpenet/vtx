@@ -15,24 +15,9 @@
                      :prompt-fg ansi.fg.cyan
                      :value ""})
 
-(fn utf8-codepoint-start [s pos]
-  (var p pos)
-  (while (and (> p 1) (let [b (string.byte s p)]
-                        (and (>= b 128) (<= b 191))))
-    (set p (- p 1)))
-  p)
+(local utf8-codepoint-start util.utf8-codepoint-start)
 
-(fn utf8-next-pos [s pos]
-  (let [b (string.byte s (+ pos 1))]
-    (if (not b)
-        pos
-        (< b 192)
-        (+ pos 1)
-        (< b 224)
-        (+ pos 2)
-        (< b 240)
-        (+ pos 3)
-        (+ pos 4))))
+(local utf8-next-pos util.utf8-next-pos)
 
 (fn cursor-char [buf pos cursor-fg]
   (let [ch (if (> (# buf) pos)
@@ -65,11 +50,7 @@
   pfx)
 
 (fn input [user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (var buf opts.value)
     (var pos (# buf))
     (var result nil)
@@ -94,10 +75,14 @@
                        (term.write (render buf pos opts ghost))
                        (let [prev-buf buf
                              k (term.read-key)]
-                         (when (not= k "\026")
+                         (when (and (not= k "\026") (not= (type k) "table"))
                            (set undo-buf buf)
                            (set undo-pos pos))
                          (match k
+                           {:paste content} (let [clean ((content:gsub "[\r
+                                                                         ]" " "))]
+                                              (set buf (.. (buf:sub 1 pos) clean (buf:sub (+ pos 1))))
+                                              (set pos (+ pos (# clean))))
                            (where (or "\r" "\n")) (do
                                                     (set result buf)
                                                     (set running false))
@@ -106,8 +91,8 @@
                                                       (let [start (utf8-codepoint-start buf pos)]
                                                         (set buf (.. (buf:sub 1 (- start 1)) (buf:sub (+ pos 1))))
                                                         (set pos (- start 1))))
-                           "delete" (when (< pos (# buf))
-                                      (set buf (.. (buf:sub 1 pos) (buf:sub (+ pos 2)))))
+                           (where (or "delete" "\004")) (when (< pos (# buf))
+                                                          (set buf (.. (buf:sub 1 pos) (buf:sub (+ pos 2)))))
                            (where (or "left" "\002")) (when (> pos 0)
                                                         (set pos (- (utf8-codepoint-start buf pos) 1)))
                            (where (or "right" "\006")) (when (< pos (# buf))
@@ -183,7 +168,7 @@
                          (when (not= buf prev-buf)
                            (update-ghost)
                            (when opts.on-change
-                             (opts.on-change buf)))))))
+                             (opts.on-change buf)))))) {:bracketed-paste true})
     (term.writeln "")
     result))
 

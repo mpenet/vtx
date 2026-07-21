@@ -6,6 +6,8 @@
 
 (local theme (require "vtx.theme"))
 
+(local list-nav (require "vtx.list-nav"))
+
 (local default-opts {:alt-screen false
                      :cursor "> "
                      :cursor-fg ansi.fg.cyan
@@ -64,15 +66,11 @@
     (.. prefix text)))
 
 (fn choose [items user-opts]
-  (let [opts (collect [k v (pairs default-opts)] k v)]
-    (theme.apply opts)
-    (when user-opts
-      (each [k v (pairs user-opts)]
-        (tset opts k v)))
+  (let [opts (theme.merge default-opts user-opts)]
     (let [n (# items)
-          height (math.min opts.height n)]
-      (var cursor 1)
-      (var offset 0)
+          height (math.min opts.height n)
+          nav (list-nav.make-state n height)
+          fcache (term.make-frame-cache)]
       (var selected {})
       (var result nil)
       (var term-w 80)
@@ -85,26 +83,23 @@
                        (while running
                          (set term-w (let [(_ c) (term.size)]
                                        (or c 80)))
-                         (when (< cursor (+ offset 1))
-                           (set offset (- cursor 1)))
-                         (when (> cursor (+ offset height))
-                           (set offset (- cursor height)))
-                         (for [row 1 height]
-                           (let [i (+ offset row)]
-                             (term.write (.. "\r" (if (<= i n)
-                                                      (render-item (. items i) i cursor selected opts term-w search-query)
-                                                      "") ansi.screen.clear-right "\r
+                         (list-nav.clamp nav)
+                         (term.render-frame fcache (fn [push]
+                                                     (list-nav.each-visible nav (fn [_row i _is-cursor]
+                                                                                  (push (.. "\r" (if (<= i n)
+                                                                                                     (render-item (. items i) i nav.cursor selected opts term-w search-query)
+                                                                                                     "") ansi.screen.clear-right "\r
 "))))
-                         (when opts.search
-                           (if search-mode
-                               (term.write (.. "\r" (ansi.style (.. "/" search-query) ansi.fg.yellow) (ansi.style " " ansi.reverse) ansi.screen.clear-right))
-                               (if (> (# search-query) 0)
-                                   (let [nm (# search-matches)]
-                                     (term.write (.. "\r" (ansi.style (.. "/" search-query " (" nm " match" (if (= nm 1)
-                                                                                                                ""
-                                                                                                                "es") ") - n/N cycle") ansi.dim) ansi.screen.clear-right)))
-                                   (term.write (.. "\r" (ansi.style "/ to search" ansi.dim) ansi.screen.clear-right)))))
-                         (term.cursor-up height)
+                                                     (when opts.search
+                                                       (if search-mode
+                                                           (push (.. "\r" (ansi.style (.. "/" search-query) ansi.fg.yellow) (ansi.style " " ansi.reverse) ansi.screen.clear-right))
+                                                           (if (> (# search-query) 0)
+                                                               (let [nm (# search-matches)]
+                                                                 (push (.. "\r" (ansi.style (.. "/" search-query " (" nm " match" (if (= nm 1)
+                                                                                                                                      ""
+                                                                                                                                      "es") ") - n/N cycle") ansi.dim) ansi.screen.clear-right)))
+                                                               (push (.. "\r" (ansi.style "/ to search" ansi.dim) ansi.screen.clear-right)))))
+                                                     (push (ansi.cursor.up height))))
                          (let [k (term.read-key)]
                            (if search-mode
                                (match k
@@ -118,59 +113,52 @@
                                                             (set search-matches (search-items items search-query))
                                                             (set search-idx 1)
                                                             (when (> (# search-matches) 0)
-                                                              (set cursor (. search-matches 1))))
+                                                              (set nav.cursor (. search-matches 1))))
                                  _ (when (and (= (type k) "string") (= (# k) 1) (>= (string.byte k) 32))
                                      (set search-query (.. search-query k))
                                      (set search-matches (search-items items search-query))
                                      (set search-idx 1)
                                      (when (> (# search-matches) 0)
-                                       (set cursor (. search-matches 1)))))
-                               (match k
-                                 (where (or "up" "k" "\016")) (set cursor (clamp (- cursor 1) 1 n))
-                                 (where (or "down" "j" "\014")) (set cursor (clamp (+ cursor 1) 1 n))
-                                 "\006" (set cursor (clamp (+ cursor (math.floor (/ height 2))) 1 n))
-                                 "\002" (set cursor (clamp (- cursor (math.floor (/ height 2))) 1 n))
-                                 "g" (set cursor 1)
-                                 "G" (set cursor n)
-                                 "/" (when opts.search
-                                       (set search-mode true)
-                                       (set search-query ""))
-                                 "n" (when (> (# search-matches) 0)
-                                       (set search-idx (if (>= search-idx (# search-matches))
-                                                           1
-                                                           (+ search-idx 1)))
-                                       (set cursor (. search-matches search-idx)))
-                                 "N" (when (> (# search-matches) 0)
-                                       (set search-idx (if (<= search-idx 1)
-                                                           (# search-matches)
-                                                           (- search-idx 1)))
-                                       (set cursor (. search-matches search-idx)))
-                                 " " (when opts.multi
-                                       (if (. selected cursor)
-                                           (tset selected cursor nil)
-                                           (tset selected cursor true)))
-                                 (where (or "\r" "\n")) (do
-                                                          (if opts.multi
-                                                              (let [picks {}]
-                                                                (for [i 1 n]
-                                                                  (when (. selected i)
-                                                                    (table.insert picks (. items i))))
-                                                                (set result (if (= (# picks) 0)
-                                                                                [(. items cursor)]
-                                                                                picks)))
-                                                              (set result (. items cursor)))
-                                                          (set running false))
-                                 "resize" (set term-w (let [(_ c) (term.size)]
-                                                        (or c 80)))
-                                 (where (or "q" "\003" "escape")) (set running false)))))) {:alt-screen opts.alt-screen})
+                                       (set nav.cursor (. search-matches 1)))))
+                               (if (list-nav.handle-key nav k)
+                                   nil
+                                   (match k
+                                     "/" (when opts.search
+                                           (set search-mode true)
+                                           (set search-query ""))
+                                     "n" (when (> (# search-matches) 0)
+                                           (set search-idx (if (>= search-idx (# search-matches))
+                                                               1
+                                                               (+ search-idx 1)))
+                                           (set nav.cursor (. search-matches search-idx)))
+                                     "N" (when (> (# search-matches) 0)
+                                           (set search-idx (if (<= search-idx 1)
+                                                               (# search-matches)
+                                                               (- search-idx 1)))
+                                           (set nav.cursor (. search-matches search-idx)))
+                                     " " (when opts.multi
+                                           (if (. selected nav.cursor)
+                                               (tset selected nav.cursor nil)
+                                               (tset selected nav.cursor true)))
+                                     (where (or "\r" "\n")) (do
+                                                              (if opts.multi
+                                                                  (let [picks {}]
+                                                                    (for [i 1 n]
+                                                                      (when (. selected i)
+                                                                        (table.insert picks (. items i))))
+                                                                    (set result (if (= (# picks) 0)
+                                                                                    [(. items nav.cursor)]
+                                                                                    picks)))
+                                                                  (set result (. items nav.cursor)))
+                                                              (set running false))
+                                     "resize" (set term-w (let [(_ c) (term.size)]
+                                                            (or c 80)))
+                                     (where (or "q" "\003" "escape")) (set running false))))))) {:alt-screen opts.alt-screen})
       (when (not opts.alt-screen)
         (let [clear-rows (if opts.search
                              (+ height 1)
                              height)]
-          (for [_ 1 clear-rows]
-            (term.write (.. "\r" ansi.screen.clear-right "\r
-")))
-          (term.cursor-up clear-rows)))
+          (term.clear-rows clear-rows)))
       result)))
 
 {:choose choose :highlight-match highlight-match :search-items search-items}
